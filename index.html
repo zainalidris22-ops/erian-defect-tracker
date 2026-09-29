@@ -34,23 +34,47 @@
     <div id="loginScreen" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4">
         <div class="bg-dark-card border border-dark-border rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6">
             <div class="text-center space-y-2">
-                <div class="w-16 h-16 bg-brand-500/10 border border-brand-500/30 rounded-2xl mx-auto flex items-center justify-center text-brand-400 text-2xl shadow-inner">
-                    <i class="fas fa-tools"></i>
+                <div class="w-16 h-16 bg-[#333b44] border border-slate-600 rounded-2xl mx-auto flex items-center justify-center text-slate-200 text-2xl shadow-inner">
+                    <i class="fas fa-building"></i>
                 </div>
-                <h1 class="text-xl font-bold text-white">Erian Defect Tracker</h1>
-                <p class="text-xs text-slate-400">Silakan login dengan akun hotel Anda</p>
+                <h1 class="text-xl font-bold text-white uppercase tracking-wider">Erian Defect Tracker</h1>
+                <p class="text-xs text-slate-400">Masukkan Email dan Password resmi Anda untuk masuk.</p>
             </div>
-            <div class="space-y-4 text-sm">
+            
+            <div id="authErrorMsg" class="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-xs flex items-center gap-2 hidden">
+                <i class="fas fa-exclamation-circle shrink-0"></i>
+                <span id="authErrorText">Email atau password salah.</span>
+            </div>
+
+            <form onsubmit="handleLogin(event)" class="space-y-4 text-left">
                 <div>
-                    <label class="text-xs text-slate-400 block mb-1">Email / Username</label>
-                    <input type="text" id="authEmailInput" placeholder="email@erianhotel.com" class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-4 py-3 text-white text-xs focus:outline-none focus:border-brand-500">
+                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Email HOD / Staff</label>
+                    <div class="relative">
+                        <i class="fas fa-envelope text-slate-500 absolute left-3.5 top-3.5 text-sm"></i>
+                        <input type="email" id="authEmailInput" placeholder="contoh: zainalidris22@gmail.com" required class="w-full bg-[#1e2124] border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                    </div>
                 </div>
                 <div>
-                    <label class="text-xs text-slate-400 block mb-1">Password</label>
-                    <input type="password" id="authPasswordInput" placeholder="••••••••" class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-4 py-3 text-white text-xs focus:outline-none focus:border-brand-500">
+                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Password</label>
+                    <div class="relative">
+                        <i class="fas fa-lock text-slate-500 absolute left-3.5 top-3.5 text-sm"></i>
+                        <input type="password" id="authPasswordInput" placeholder="Masukkan password" required class="w-full bg-[#1e2124] border border-slate-700 rounded-xl pl-10 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                        <button type="button" onclick="toggleLoginPass()" class="absolute right-3.5 top-3 text-slate-500 hover:text-slate-300">
+                            <i id="eyeIcon" class="fas fa-eye text-sm"></i>
+                        </button>
+                    </div>
                 </div>
-                <p id="authErrorMsg" class="text-xs text-amber-400 hidden"></p>
-                <button onclick="handleLogin()" class="w-full gold-gradient text-slate-950 py-3 rounded-xl font-bold text-xs shadow-lg hover:opacity-90 transition-all">Login ke Dashboard</button>
+                <button type="submit" class="w-full bg-[#333b44] hover:bg-[#22272e] text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition border border-slate-600">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Masuk Aplikasi</span>
+                </button>
+            </form>
+
+            <div class="text-left bg-[#1e2124] p-3 rounded-xl border border-slate-800 text-[11px] text-slate-400 space-y-1">
+                <p class="font-bold text-slate-300">Contoh Akun Akses:</p>
+                <p>• FO: zainalidris22@gmail.com / pass: zainal123</p>
+                <p>• HK: SarasAndini89@gmail.com / pass: saras123</p>
+                <p>• Eng: budihartanto23@gmail.com / pass: budi123</p>
             </div>
         </div>
     </div>
@@ -63,369 +87,766 @@
                     <span class="font-bold tracking-wider text-white text-sm">ERIAN HOTEL</span>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold tracking-tight text-white">Erian Defect Tracker</h1>
-                    <p class="text-xs text-slate-400">Pencatatan & Pemeliharaan Isu Kerusakan Hotel</p>
+                    <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                        ERIAN DEFECT FIND OUT
+                        <span class="bg-[#333b44] text-slate-300 text-[10px] px-2.5 py-0.5 rounded-full border border-slate-600">EPF System</span>
+                    </h1>
+                    <p class="text-xs text-slate-400" id="userInfoHeader">Logged in as: -</p>
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <button onclick="openAddDefectModal()" class="gold-gradient text-slate-950 px-4 py-2.5 rounded-xl font-bold text-xs shadow-lg hover:opacity-90 transition-all flex items-center gap-2">
-                    <i class="fas fa-plus text-sm"></i>
-                    <span>+ Lapor Defect</span>
+                <button onclick="openChangePassModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2">
+                    <i class="fas fa-key text-amber-400"></i>
+                    <span class="hidden md:inline">Ganti Password</span>
                 </button>
-                <button onclick="handleLogout()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-3 py-2.5 rounded-xl text-xs font-semibold" title="Keluar Akun">
+                <button onclick="handleLogout()" class="bg-red-600/80 hover:bg-red-600 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2">
                     <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
                 </button>
             </div>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        <!-- Statistik -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-gradient-to-br from-slate-900 to-[#282b30] border border-blue-500/30 rounded-2xl p-6 shadow-xl flex items-center justify-between">
+        <!-- Banner -->
+        <div class="bg-[#282b30] border border-slate-700/80 p-6 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="text-center sm:text-left">
+                <h2 class="font-bold text-white text-2xl tracking-wide">ERIAN HOTEL</h2>
+                <p class="text-sm text-slate-400 mt-1">Sistem Pelaporan dan Monitoring Kerusakan Fasilitas (Defect Tracker)</p>
+            </div>
+            <div class="flex flex-wrap gap-3 justify-center">
+                <button onclick="openQuickUpdateModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg transition">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Update Defect</span>
+                </button>
+                <button id="submitReportBtn" onclick="openAddModal()" class="gold-gradient text-slate-950 px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg hover:opacity-90 transition">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Submit Report</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Statistik Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div onclick="filterCardClick('Total')" class="bg-gradient-to-br from-slate-900 to-[#282b30] border border-red-500/30 rounded-2xl p-6 shadow-xl flex items-center justify-between cursor-pointer hover:border-red-500 transition-all">
                 <div>
-                    <span class="text-xs font-semibold uppercase tracking-wider text-blue-400 flex items-center gap-1.5"><i class="fas fa-clipboard-list"></i> Total Defect</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-red-400">Total Finding</span>
                     <div class="flex items-baseline gap-2 mt-4">
-                        <span id="totalDefects" class="text-3xl font-bold text-white">0</span>
-                        <span class="text-xs text-slate-400">laporan tercatat</span>
+                        <span id="statTotal" class="text-3xl font-bold text-white">0</span>
+                        <span class="text-xs text-slate-400">laporan</span>
                     </div>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-xl shadow-inner">
-                    <i class="fas fa-tools"></i>
+                <div class="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 text-xl">
+                    <i class="fas fa-clipboard-list"></i>
                 </div>
             </div>
 
-            <div class="bg-gradient-to-br from-slate-900 to-[#282b30] border border-amber-500/30 rounded-2xl p-6 shadow-xl flex items-center justify-between">
+            <div onclick="filterCardClick('Open')" class="bg-gradient-to-br from-slate-900 to-[#282b30] border border-amber-500/30 rounded-2xl p-6 shadow-xl flex items-center justify-between cursor-pointer hover:border-amber-500 transition-all">
                 <div>
-                    <span class="text-xs font-semibold uppercase tracking-wider text-amber-400 flex items-center gap-1.5"><i class="fas fa-spinner"></i> Sedang Dikerjakan</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-amber-400">Open / Pending</span>
                     <div class="flex items-baseline gap-2 mt-4">
-                        <span id="pendingDefects" class="text-3xl font-bold text-brand-400">0</span>
-                        <span class="text-xs text-slate-400">proses perbaikan</span>
+                        <span id="statOpen" class="text-3xl font-bold text-amber-400">0</span>
+                        <span class="text-xs text-slate-400">pending</span>
                     </div>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-xl shadow-inner">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-xl">
                     <i class="fas fa-clock"></i>
                 </div>
             </div>
 
-            <div class="bg-gradient-to-br from-slate-900 to-[#282b30] border border-emerald-500/30 rounded-2xl p-6 shadow-xl flex items-center justify-between">
+            <div onclick="filterCardClick('Done')" class="bg-gradient-to-br from-slate-900 to-[#282b30] border border-blue-500/30 rounded-2xl p-6 shadow-xl flex items-center justify-between cursor-pointer hover:border-blue-500 transition-all">
                 <div>
-                    <span class="text-xs font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5"><i class="fas fa-check-circle"></i> Selesai (Resolved)</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-blue-400">Done Progress (Eng)</span>
                     <div class="flex items-baseline gap-2 mt-4">
-                        <span id="resolvedDefects" class="text-3xl font-bold text-emerald-400">0</span>
-                        <span class="text-xs text-slate-400">isu beres</span>
+                        <span id="statDone" class="text-3xl font-bold text-blue-400">0</span>
+                        <span class="text-xs text-slate-400">dikerjakan</span>
                     </div>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-xl shadow-inner">
-                    <i class="fas fa-check"></i>
+                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-xl">
+                    <i class="fas fa-tools"></i>
+                </div>
+            </div>
+
+            <div onclick="filterCardClick('Verified')" class="bg-gradient-to-br from-slate-900 to-[#282b30] border border-emerald-500/30 rounded-2xl p-6 shadow-xl flex items-center justify-between cursor-pointer hover:border-emerald-500 transition-all">
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-emerald-400">Verified Clean (HK)</span>
+                    <div class="flex items-baseline gap-2 mt-4">
+                        <span id="statVerified" class="text-3xl font-bold text-emerald-400">0</span>
+                        <span class="text-xs text-slate-400">verified</span>
+                    </div>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-xl">
+                    <i class="fas fa-check-circle"></i>
                 </div>
             </div>
         </div>
 
-        <!-- Tabel Utama -->
-        <div class="bg-dark-card/90 border border-dark-border rounded-3xl shadow-2xl overflow-hidden">
-            <div class="p-6 border-b border-dark-border flex flex-col md:flex-row items-center justify-between gap-4">
+        <!-- Filter & Search Section -->
+        <div class="bg-dark-card/90 border border-dark-border rounded-3xl shadow-2xl p-6 space-y-4">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                 <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
                     <div class="relative flex-1 md:w-72">
                         <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                        <input type="text" id="searchInput" oninput="renderTable()" placeholder="Cari kamar / kendala..." class="w-full bg-[#1e2124] border border-slate-700/60 rounded-xl pl-11 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                        <input type="text" id="searchInput" oninput="renderTable()" placeholder="Cari ruang, item, atau pelapor..." class="w-full bg-[#1e2124] border border-slate-700/60 rounded-xl pl-11 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
                     </div>
 
                     <select id="statusFilter" onchange="renderTable()" class="bg-[#1e2124] border border-slate-700/60 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
-                        <option value="ALL">Semua Status</option>
-                        <option value="Pending">Pending</option>
-                        <option value="In Progress">In Progress</option>
+                        <option value="">Semua Status</option>
+                        <option value="Open">Open</option>
+                        <option value="Done Progress">Done Progress</option>
                         <option value="Resolved">Resolved</option>
                     </select>
+
+                    <select id="floorFilter" onchange="renderTable()" class="bg-[#1e2124] border border-slate-700/60 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                        <option value="">Semua Area</option>
+                        <option value="L">Lobby (L)</option>
+                        <option value="2">Lantai 2</option>
+                        <option value="3">Lantai 3</option>
+                        <option value="4">Lantai 4</option>
+                        <option value="5">Lantai 5</option>
+                        <option value="6">Lantai 6</option>
+                        <option value="7">Lantai 7</option>
+                        <option value="8">Lantai 8</option>
+                        <option value="9">Lantai 9</option>
+                    </select>
                 </div>
-                <button onclick="exportToExcel()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2">
-                    <i class="fas fa-file-excel text-emerald-400"></i>
-                    <span>Export Excel</span>
+
+                <button onclick="exportToExcel()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition">
+                    <i class="fas fa-file-excel"></i>
+                    <span>Export Report (Excel)</span>
                 </button>
             </div>
+        </div>
 
+        <!-- Tabel Data -->
+        <div class="bg-dark-card/90 border border-dark-border rounded-3xl shadow-2xl overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
+                <table class="w-full text-left border-collapse text-sm">
                     <thead>
                         <tr class="bg-[#1e2124] text-slate-400 text-[11px] uppercase tracking-wider border-b border-dark-border">
-                            <th class="px-6 py-4">Lokasi / Kamar</th>
-                            <th class="px-6 py-4">Kategori Kerusakan</th>
-                            <th class="px-6 py-4">Keterangan Isu</th>
-                            <th class="px-6 py-4 text-center">Status</th>
-                            <th class="px-6 py-4 text-center">Pelapor</th>
-                            <th class="px-6 py-4 text-center">Aksi</th>
+                            <th class="px-6 py-4">No. Record</th>
+                            <th class="px-6 py-4">Foto</th>
+                            <th class="px-6 py-4">Floor / Area</th>
+                            <th class="px-6 py-4">Item Kerusakan</th>
+                            <th class="px-6 py-4">Pelapor (HOD)</th>
+                            <th class="px-6 py-4 text-center">Status (Eng)</th>
+                            <th class="px-6 py-4 text-center">Check (HK)</th>
+                            <th class="px-6 py-4 text-center">AI Assist</th>
                         </tr>
                     </thead>
                     <tbody id="defectTableBody" class="divide-y divide-dark-border/60 text-sm"></tbody>
                 </table>
             </div>
-
-            <div class="px-6 py-4 border-t border-dark-border bg-[#1e2124]/40 flex items-center justify-between">
-                <span class="text-xs text-slate-400" id="paginationInfo">Menampilkan 0 dari 0 data</span>
-                <div class="flex items-center gap-2">
-                    <button onclick="changePage(-1)" id="prevBtn" class="bg-slate-800 text-slate-300 px-3.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-700 disabled:opacity-40">Prev</button>
-                    <span id="pageIndicator" class="text-xs font-medium px-3 py-1 bg-[#1e2124] border border-slate-800 rounded-lg text-white">1 / 1</span>
-                    <button onclick="changePage(1)" id="nextBtn" class="bg-slate-800 text-slate-300 px-3.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-700 disabled:opacity-40">Next</button>
-                </div>
-            </div>
         </div>
     </main>
 
-    <!-- Modal Lapor Defect -->
-    <div id="addDefectModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-dark-card border border-dark-border rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+    <!-- Modal Add Report -->
+    <div id="addModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-dark-card border border-dark-border rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-3 border-b border-dark-border">
-                <h3 class="text-base font-bold text-white flex items-center gap-2"><i class="fas fa-tools text-brand-400"></i> Lapor Defect / Kerusakan Baru</h3>
-                <button onclick="closeAddDefectModal()" class="text-slate-400 hover:text-white"><i class="fas fa-times text-lg"></i></button>
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fas fa-plus-circle text-brand-400"></i> Submit Report Defect
+                </h3>
+                <button onclick="closeAddModal()" class="text-slate-400 hover:text-white"><i class="fas fa-times text-lg"></i></button>
             </div>
-            <div class="space-y-3 text-sm">
-                <div>
-                    <label class="text-xs text-slate-400 block mb-1">Lokasi / Nomor Kamar</label>
-                    <input type="text" id="inputLocation" placeholder="Contoh: Kamar 302 / Lobby Utama" class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-brand-500">
-                </div>
-                <div>
-                    <label class="text-xs text-slate-400 block mb-1">Kategori Kerusakan</label>
-                    <select id="inputCategory" class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-brand-500">
-                        <option value="AC & Pendingin">AC & Pendingin</option>
-                        <option value="Plumbing / Pipa">Plumbing / Pipa & Air</option>
-                        <option value="Electrical / Lampu">Electrical / Lampu & Saklar</option>
-                        <option value="Furniture / Interior">Furniture / Interior</option>
-                        <option value="Lainnya">Lainnya</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="text-xs text-slate-400 block mb-1">Keterangan / Detail Kerusakan</label>
-                    <textarea id="inputDescription" rows="3" placeholder="Jelaskan detail kendala..." class="w-full bg-[#1e2124] border border-slate-700 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-brand-500"></textarea>
-                </div>
+            
+            <div class="bg-[#1e2124] p-3 rounded-2xl border border-slate-800 flex justify-between items-center text-xs">
+                <span class="font-bold text-slate-400 uppercase">No. Record Tiket Baru:</span>
+                <span id="newRecordNoDisplay" class="font-mono text-base font-bold text-brand-400">EPF-000086</span>
+            </div>
+
+            <form onsubmit="handleFormSubmit(event)" class="space-y-3 text-sm">
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="text-xs text-slate-400 block mb-1">Status Awal</label>
-                        <select id="inputStatus" class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-brand-500">
-                            <option value="Pending">Pending</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Resolved">Resolved</option>
+                        <label class="text-xs text-slate-400 block mb-1">Pilih Lantai / Area</label>
+                        <select id="formFloor" onchange="onFloorSelectChange()" class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-brand-500">
+                            <option value="L">Lobby (L)</option>
+                            <option value="2">Lantai 2</option>
+                            <option value="3">Lantai 3</option>
+                            <option value="4">Lantai 4</option>
+                            <option value="5">Lantai 5</option>
+                            <option value="6">Lantai 6</option>
+                            <option value="7">Lantai 7</option>
+                            <option value="8">Lantai 8</option>
+                            <option value="9">Lantai 9</option>
                         </select>
                     </div>
                     <div>
-                        <label class="text-xs text-slate-400 block mb-1">Nama Pelapor / HOD</label>
-                        <input type="text" id="inputReporter" placeholder="Nama staf..." class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-brand-500">
+                        <label class="text-xs text-slate-400 block mb-1">Ruangan / Lokasi</label>
+                        <select id="formRoom" class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-brand-500"></select>
                     </div>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Kategori Kerusakan</label>
+                    <select id="formItem" class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-brand-500">
+                        <option value="Air Conditioner (AC)">Air Conditioner (AC)</option>
+                        <option value="Electrical">Electrical</option>
+                        <option value="Lighting">Lighting</option>
+                        <option value="Plumbing">Plumbing</option>
+                        <option value="Bathroom">Bathroom</option>
+                        <option value="Door">Door</option>
+                        <option value="Window">Window</option>
+                        <option value="Wall">Wall</option>
+                        <option value="Ceiling">Ceiling</option>
+                        <option value="Floor">Floor</option>
+                        <option value="Furniture">Furniture</option>
+                        <option value="Painting">Painting</option>
+                        <option value="Telephone / TV">Telephone / TV</option>
+                        <option value="Minibar">Minibar</option>
+                        <option value="Others">Others</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Detail Temuan</label>
+                    <textarea id="formNote" rows="3" placeholder="Jelaskan detail kerusakan..." required class="w-full bg-[#1e2124] border border-slate-700 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-brand-500"></textarea>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Lampirkan Foto (Opsional)</label>
+                    <input type="file" id="formPhotoFile" accept="image/*" onchange="previewFormPhoto(event)" class="w-full bg-[#1e2124] border border-slate-700 rounded-xl p-2 text-xs text-slate-300">
+                    <div id="photoPreviewContainer" class="mt-2 hidden">
+                        <img id="photoPreviewImg" src="" alt="Preview" class="w-20 h-20 object-cover rounded-xl border border-slate-700">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeAddModal()" class="bg-slate-800 text-slate-300 px-4 py-2 rounded-xl text-xs font-semibold">Batal</button>
+                    <button type="submit" class="gold-gradient text-slate-950 px-5 py-2 rounded-xl text-xs font-bold">Kirim Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Quick Update -->
+    <div id="quickModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-dark-card border border-dark-border rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-dark-border">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fas fa-check-circle text-blue-400"></i> Update Defect (No. Tiket)
+                </h3>
+                <button onclick="closeQuickUpdateModal()" class="text-slate-400 hover:text-white"><i class="fas fa-times text-lg"></i></button>
+            </div>
+            
+            <div class="space-y-3 text-sm">
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Pilih Nomor Tiket</label>
+                    <select id="quickTicketSelect" onchange="onQuickTicketChange()" class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-brand-500 font-mono"></select>
+                </div>
+                <div id="quickTicketDetailBox" class="bg-[#1e2124] p-3 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-1 hidden">
+                    <p><strong class="text-white">Pelapor:</strong> <span id="qDetailReporter"></span></p>
+                    <p><strong class="text-white">Lokasi:</strong> <span id="qDetailLocation"></span></p>
+                    <p><strong class="text-white">Catatan:</strong> <span id="qDetailNote"></span></p>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1" id="quickStatusLabel">Status Update</label>
+                    <select id="quickStatusSelect" class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-brand-500"></select>
                 </div>
             </div>
             <div class="flex justify-end gap-2 pt-2">
-                <button onclick="closeAddDefectModal()" class="bg-slate-800 text-slate-300 px-4 py-2 rounded-xl text-xs font-semibold">Batal</button>
-                <button onclick="saveNewDefect()" class="gold-gradient text-slate-950 px-5 py-2 rounded-xl text-xs font-bold shadow-md hover:opacity-90">Simpan Laporan</button>
+                <button onclick="closeQuickUpdateModal()" class="bg-slate-800 text-slate-300 px-4 py-2 rounded-xl text-xs font-semibold">Batal</button>
+                <button onclick="saveQuickUpdate()" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-xl text-xs font-bold">Simpan Update</button>
             </div>
         </div>
     </div>
 
+    <!-- Modal Change Password -->
+    <div id="passModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-dark-card border border-dark-border rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-dark-border">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fas fa-key text-amber-400"></i> Ganti Password Akun
+                </h3>
+                <button onclick="closeChangePassModal()" class="text-slate-400 hover:text-white"><i class="fas fa-times text-lg"></i></button>
+            </div>
+
+            <div id="passMsgBox" class="p-3 rounded-xl text-xs hidden"></div>
+
+            <form onsubmit="handlePasswordChangeSubmit(event)" class="space-y-3 text-sm">
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Password Lama</label>
+                    <input type="password" id="oldPassInput" required class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Password Baru</label>
+                    <input type="password" id="newPassInput" required class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none" placeholder="Minimal 6 karakter">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Konfirmasi Password Baru</label>
+                    <input type="password" id="confirmPassInput" required class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeChangePassModal()" class="bg-slate-800 text-slate-300 px-4 py-2 rounded-xl text-xs font-semibold">Batal</button>
+                    <button type="submit" class="gold-gradient text-slate-950 px-5 py-2 rounded-xl text-xs font-bold">Simpan Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal AI Assist -->
+    <div id="aiModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-dark-card border border-dark-border rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-dark-border">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fas fa-sparkles text-amber-400"></i> Erian AI Assistant
+                </h3>
+                <button onclick="closeAiModal()" class="text-slate-400 hover:text-white"><i class="fas fa-times text-lg"></i></button>
+            </div>
+            <div id="aiContentBox" class="bg-[#1e2124] p-4 rounded-xl border border-slate-800 text-xs text-slate-300 whitespace-pre-line leading-relaxed font-sans"></div>
+            <div class="flex justify-end">
+                <button onclick="closeAiModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-xl text-xs font-semibold">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Zoom Foto -->
+    <div id="zoomModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[60] flex items-center justify-center p-4 hidden" onclick="closeZoomModal()">
+        <div class="relative max-w-5xl max-h-[90vh] flex flex-col items-center">
+            <button class="absolute -top-12 right-0 text-white bg-slate-800/80 px-4 py-2 rounded-full text-xs font-bold" onclick="closeZoomModal()">Tutup Foto</button>
+            <img id="zoomedImg" src="" alt="Zoomed" class="max-w-full max-h-[85vh] object-contain rounded-2xl border border-slate-700 bg-white" onclick="event.stopPropagation()">
+        </div>
+    </div>
+
     <script>
-        const SCRIPT_URL = ''; // Masukkan URL Web App Google Apps Script Anda jika ingin sinkronisasi Sheets
-        
-        let userList = [
-            { email: 'admin@erian.com', pass: 'erian2026', name: 'Admin Hotel', role: 'Management' },
-            { email: 'fo@erian.com', pass: 'fo123', name: 'Front Office', role: 'FO' },
-            { email: 'eng@erian.com', pass: 'eng123', name: 'Engineering', role: 'Engineering' }
+        const initialUserList = [
+            { email: "zainalidris22@gmail.com", pass: "zainal123", name: "Zainal (Asst. FOM)", dept: "FO" },
+            { email: "ameliatanuwidjaja@gmail.com", pass: "amel123", name: "Amel (Accounting Spv)", dept: "CA" },
+            { email: "aswansumarno@gmail.com", pass: "asep123", name: "Asep (FBM)", dept: "FBS" },
+            { email: "dv.bule81@gmail.com", pass: "devy123", name: "Devy (Owner Rep)", dept: "GA" },
+            { email: "indra.fraja@gmail.com", pass: "indra123", name: "Indra (Head Chef)", dept: "FBP" },
+            { email: "rdarst0907@gmail.com", pass: "resti123", name: "Resti (DOSM)", dept: "Sales" },
+            { email: "SarasAndini89@gmail.com", pass: "saras123", name: "Saras (HK SPV)", dept: "HK" },
+            { email: "budihartanto23@gmail.com", pass: "budi123", name: "Budi (Eng SPV)", dept: "Eng" },
+            { email: "rachmatIT23@gmail.com", pass: "rachmat123", name: "Rachmat (ITM)", dept: "IT" },
+            { email: "pipit.sopandian@gmail.com", pass: "pipit123", name: "Pipit (SM)", dept: "Sales" },
+            { email: "septianyuda47@gmail.com", pass: "septian123", name: "Septian (Asst.Bqt Manager)", dept: "FBS" }
         ];
 
-        let defectDatabase = [
-            { id: 1, location: "Kamar 201", category: "AC & Pendingin", description: "AC kurang dingin / tidak merespon remote", status: "Pending", reporter: "Front Office", date: "29-09-2026" },
-            { id: 2, location: "Kamar 305", category: "Plumbing / Pipa", description: "Wastafel mampet / lambat mengalir", status: "In Progress", reporter: "Housekeeping", date: "29-09-2026" },
-            { id: 3, location: "Lobby Utama", category: "Electrical / Lampu", description: "Lampu downlight plafon mati sebelah", status: "Resolved", reporter: "Engineering", date: "28-09-2026" }
+        const locationMapping = [
+            { floor: "L", room: "Lobby" }, { floor: "L", room: "Male Toilet" }, { floor: "L", room: "Female Toilet" }, { floor: "L", room: "Parking Area" },
+            { floor: "2", room: "Lv.2 Hall" }, { floor: "2", room: "PDR" }, { floor: "2", room: "Female Toilet" }, { floor: "2", room: "Male Toilet" },
+            { floor: "3", room: "Erian 1" }, { floor: "3", room: "Erian 2" }, { floor: "3", room: "Erian 3" }, { floor: "3", room: "Erian 4" }, { floor: "3", room: "Male Toilet" }, { floor: "3", room: "Female Toilet" },
+            { floor: "4", room: "401" }, { floor: "4", room: "402" }, { floor: "4", room: "403" }, { floor: "4", room: "404" }, { floor: "4", room: "405" }, { floor: "4", room: "406" }, { floor: "4", room: "407" }, { floor: "4", room: "408" }, { floor: "4", room: "409" }, { floor: "4", room: "410" }, { floor: "4", room: "411" }, { floor: "4", room: "412" }, { floor: "4", room: "413" }, { floor: "4", room: "414" }, { floor: "4", room: "415" }, { floor: "4", room: "416" }, { floor: "4", room: "417" }, { floor: "4", room: "Corridor Level 4" },
+            { floor: "5", room: "501" }, { floor: "5", room: "502" }, { floor: "5", room: "503" }, { floor: "5", room: "504" }, { floor: "5", room: "505" }, { floor: "5", room: "506" }, { floor: "5", room: "507" }, { floor: "5", room: "508" }, { floor: "5", room: "509" }, { floor: "5", room: "510" }, { floor: "5", room: "511" }, { floor: "5", room: "512" }, { floor: "5", room: "513" }, { floor: "5", room: "514" }, { floor: "5", room: "515" }, { floor: "5", room: "516" }, { floor: "5", room: "517" }, { floor: "5", room: "Corridor Level 5" },
+            { floor: "6", room: "601" }, { floor: "6", room: "602" }, { floor: "6", room: "603" }, { floor: "6", room: "604" }, { floor: "6", room: "605" }, { floor: "6", room: "606" }, { floor: "6", room: "607" }, { floor: "6", room: "608" }, { floor: "6", room: "609" }, { floor: "6", room: "610" }, { floor: "6", room: "611" }, { floor: "6", room: "612" }, { floor: "6", room: "613" }, { floor: "6", room: "Corridor Level 6" },
+            { floor: "7", room: "701" }, { floor: "7", room: "702" }, { floor: "7", room: "703" }, { floor: "7", room: "704" }, { floor: "7", room: "705" }, { floor: "7", room: "706" }, { floor: "7", room: "707" }, { floor: "7", room: "708" }, { floor: "7", room: "709" }, { floor: "7", room: "710" }, { floor: "7", room: "711" }, { floor: "7", room: "712" }, { floor: "7", room: "713" }, { floor: "7", room: "Corridor Level 7" },
+            { floor: "8", room: "801" }, { floor: "8", room: "802" }, { floor: "8", room: "803" }, { floor: "8", room: "804" }, { floor: "8", room: "805" }, { floor: "8", room: "806" }, { floor: "8", room: "807" }, { floor: "8", room: "808" }, { floor: "8", room: "809" }, { floor: "8", room: "810" }, { floor: "8", room: "811" }, { floor: "8", room: "812" }, { floor: "8", room: "813" }, { floor: "8", room: "Corridor Level 8" },
+            { floor: "9", room: "Lv.9 Area" }, { floor: "9", room: "Female Toilet" }, { floor: "9", room: "Male Toilet" }
         ];
 
-        let currentPage = 1;
-        const itemsPerPage = 10;
-        let currentUser = null;
+        let initialDefects = [
+            { id: 85, recordNo: "EPF-000085", date: "2026-07-24", floor: "L", room: "Lobby", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Dinding samping pintu tb hancur", photo: "https://lh3.googleusercontent.com/d/1gwl7NRFIJEcmemuKnSZBqDA0CPrs5I0h" },
+            { id: 84, recordNo: "EPF-000084", date: "2026-07-24", floor: "L", room: "Lobby", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Dinding business centers perlu disepet", photo: "https://lh3.googleusercontent.com/d/1sO9WSCTX-7P1pycSgCk9K2RJSshJ0-Uj" },
+            { id: 83, recordNo: "EPF-000083", date: "2026-07-24", floor: "3", room: "Erian 3", item: "Electrical", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Acrylic Pintu Mesin Popcorn Pecah", photo: "https://lh3.googleusercontent.com/d/1N-TdtjPGfKo-UZ6BH2Kxc46m3D17uPOD" }
+        ];
+
+        let userList = JSON.parse(localStorage.getItem('erian_users_list')) || initialUserList;
+        let currentUser = JSON.parse(localStorage.getItem('erian_current_user')) || null;
+        let defects = JSON.parse(localStorage.getItem('erian_defects_data')) || initialDefects;
+        let activeCardFilter = 'All';
+        let tempBase64Photo = '';
 
         window.onload = function() {
-            const savedUser = localStorage.getItem('erian_defect_user');
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
+            if (currentUser) {
                 document.getElementById('loginScreen').classList.add('hidden');
+                initApp();
+            } else {
+                document.getElementById('loginScreen').classList.remove('hidden');
             }
-            fetchData();
         };
 
-        function handleLogin() {
-            const email = document.getElementById('authEmailInput').value.trim();
-            const pass = document.getElementById('authPasswordInput').value;
-            const err = document.getElementById('authErrorMsg');
+        function toggleLoginPass() {
+            const passInput = document.getElementById('authPasswordInput');
+            const icon = document.getElementById('eyeIcon');
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                icon.className = 'fas fa-eye-slash text-sm';
+            } else {
+                passInput.type = 'password';
+                icon.className = 'fas fa-eye text-sm';
+            }
+        }
 
-            const matched = userList.find(u => u.email.toLowerCase() === email.toLowerCase() && u.pass === pass);
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('authEmailInput').value.trim().toLowerCase();
+            const pass = document.getElementById('authPasswordInput').value;
+            
+            const matched = userList.find(u => u.email.toLowerCase() === email && u.pass === pass);
             if (matched) {
                 currentUser = matched;
-                localStorage.setItem('erian_defect_user', JSON.stringify(matched));
+                localStorage.setItem('erian_current_user', JSON.stringify(currentUser));
                 document.getElementById('loginScreen').classList.add('hidden');
-                err.classList.add('hidden');
+                initApp();
             } else {
-                err.innerText = "Email atau password salah. Silakan cek kembali.";
-                err.classList.remove('hidden');
+                const errBox = document.getElementById('authErrorMsg');
+                const errText = document.getElementById('authErrorText');
+                errText.innerText = "Email atau password salah. Silakan periksa kembali kredensial Anda.";
+                errBox.classList.remove('hidden');
             }
         }
 
         function handleLogout() {
-            localStorage.removeItem('erian_defect_user');
+            localStorage.removeItem('erian_current_user');
             currentUser = null;
-            document.getElementById('authEmailInput').value = '';
-            document.getElementById('authPasswordInput').value = '';
-            document.getElementById('loginScreen').classList.remove('hidden');
+            window.location.reload();
         }
 
-        function fetchData() {
-            if (!SCRIPT_URL) {
-                renderTable();
-                updateStats();
-                return;
+        function initApp() {
+            document.getElementById('userInfoHeader').innerHTML = `Logged in as: <span class="text-slate-200 font-medium">${currentUser.name} (${currentUser.dept})</span>`;
+            if (currentUser.dept === 'Eng') {
+                document.getElementById('submitReportBtn').style.display = 'none';
             }
-            fetch(SCRIPT_URL)
-                .then(res => res.json())
-                .then(data => {
-                    if (Array.isArray(data) && data.length > 0) {
-                        defectDatabase = data;
-                    }
-                    renderTable();
-                    updateStats();
-                }).catch(err => {
-                    console.log("Using local state", err);
-                    renderTable();
-                    updateStats();
-                });
+            updateStats();
+            renderTable();
+            populateRooms();
         }
 
         function updateStats() {
-            document.getElementById('totalDefects').innerText = defectDatabase.length;
-            document.getElementById('pendingDefects').innerText = defectDatabase.filter(d => d.status === 'Pending' || d.status === 'In Progress').length;
-            document.getElementById('resolvedDefects').innerText = defectDatabase.filter(d => d.status === 'Resolved').length;
+            document.getElementById('statTotal').innerText = defects.length;
+            document.getElementById('statOpen').innerText = defects.filter(d => d.statusEng === 'Open' || d.checkHK === 'Pending').length;
+            document.getElementById('statDone').innerText = defects.filter(d => d.statusEng === 'Done Progress').length;
+            document.getElementById('statVerified').innerText = defects.filter(d => d.checkHK === 'Verified').length;
         }
 
         function renderTable() {
-            const search = document.getElementById('searchInput').value.toLowerCase().trim();
-            const statusVal = document.getElementById('statusFilter').value;
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const statusF = document.getElementById('statusFilter').value;
+            const floorF = document.getElementById('floorFilter').value;
 
-            const filtered = defectDatabase.filter(d => {
-                const matchSearch = !search || d.location.toLowerCase().includes(search) || d.description.toLowerCase().includes(search);
-                const matchStatus = statusVal === 'ALL' || d.status === statusVal;
-                return matchSearch && matchStatus;
+            const filtered = defects.filter(d => {
+                const matchSearch = d.room.toLowerCase().includes(search) || d.item.toLowerCase().includes(search) || d.name.toLowerCase().includes(search) || d.recordNo.toLowerCase().includes(search);
+                const matchStatus = statusF ? d.statusEng === statusF : true;
+                const matchFloor = floorF ? d.floor === floorF : true;
+                
+                let matchCard = true;
+                if (activeCardFilter === 'Open') matchCard = (d.statusEng === 'Open' || d.checkHK === 'Pending');
+                if (activeCardFilter === 'Done') matchCard = (d.statusEng === 'Done Progress');
+                if (activeCardFilter === 'Verified') matchCard = (d.checkHK === 'Verified');
+
+                return matchSearch && matchStatus && matchFloor && matchCard;
             });
 
             const tbody = document.getElementById('defectTableBody');
             tbody.innerHTML = '';
-            const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
-            if (currentPage > totalPages) currentPage = totalPages;
-            if (currentPage < 1) currentPage = 1;
 
-            const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-            if (paginated.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-12 text-slate-500">Tidak ada data defect ditemukan.</td></tr>`;
-            } else {
-                paginated.forEach((d) => {
-                    const globalIdx = defectDatabase.findIndex(item => item.id === d.id);
-                    let badgeColor = 'bg-amber-500/10 text-amber-400 border-amber-500/30';
-                    if (d.status === 'In Progress') badgeColor = 'bg-blue-500/10 text-blue-400 border-blue-500/30';
-                    if (d.status === 'Resolved') badgeColor = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
-
-                    const row = document.createElement('tr');
-                    row.className = "hover:bg-slate-900/40 transition-colors";
-                    row.innerHTML = `
-                        <td class="px-6 py-4 font-semibold text-white">${d.location}</td>
-                        <td class="px-6 py-4 text-slate-300 text-xs">${d.category}</td>
-                        <td class="px-6 py-4 text-slate-300 text-xs max-w-xs truncate">${d.description}</td>
-                        <td class="px-6 py-4 text-center">
-                            <span class="text-[10px] font-bold px-3 py-1 rounded-full border ${badgeColor} inline-block">${d.status}</span>
-                        </td>
-                        <td class="px-6 py-4 text-center text-xs text-slate-400">${d.reporter} (${d.date})</td>
-                        <td class="px-6 py-4 text-center">
-                            <button onclick="toggleStatus(${globalIdx})" title="Ubah Status" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-brand-500 hover:text-slate-950 text-slate-300 transition-all inline-flex items-center justify-center shadow-md">
-                                <i class="fas fa-sync-alt text-xs"></i>
-                            </button>
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                });
-            }
-
-            document.getElementById('paginationInfo').innerText = `Menampilkan ${paginated.length} dari ${filtered.length} data`;
-            document.getElementById('pageIndicator').innerText = `${currentPage} / ${totalPages}`;
-            document.getElementById('prevBtn').disabled = (currentPage === 1);
-            document.getElementById('nextBtn').disabled = (currentPage === totalPages || totalPages === 0);
-        }
-
-        function changePage(dir) { currentPage += dir; renderTable(); }
-
-        function openAddDefectModal() {
-            document.getElementById('inputLocation').value = '';
-            document.getElementById('inputDescription').value = '';
-            document.getElementById('inputReporter').value = currentUser ? currentUser.name : '';
-            const m = document.getElementById('addDefectModal');
-            m.classList.remove('hidden');
-            setTimeout(() => m.classList.remove('opacity-0'), 10);
-        }
-
-        function closeAddDefectModal() {
-            document.getElementById('addDefectModal').classList.add('hidden');
-        }
-
-        function saveNewDefect() {
-            const location = document.getElementById('inputLocation').value.trim();
-            const category = document.getElementById('inputCategory').value;
-            const description = document.getElementById('inputDescription').value.trim();
-            const status = document.getElementById('inputStatus').value;
-            const reporter = document.getElementById('inputReporter').value.trim() || 'Staff';
-
-            if (!location || !description) {
-                alert("Lokasi dan keterangan kerusakan wajib diisi!");
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-slate-500">Tidak ada data defect yang ditemukan.</td></tr>`;
                 return;
             }
 
-            const today = new Date();
-            const dateStr = String(today.getDate()).padStart(2, '0') + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + today.getFullYear();
+            filtered.forEach(d => {
+                const floorLabel = d.floor === 'L' ? 'Lobby (L)' : `Lantai ${d.floor}`;
+                const photoHtml = d.photo 
+                    ? `<div class="w-12 h-12 cursor-pointer group relative" onclick="openZoomModal('${d.photo}')"><img src="${d.photo}" class="w-full h-full object-cover rounded-xl border border-slate-700"></div>`
+                    : `<div class="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-[10px] text-slate-500 border border-slate-700">No Foto</div>`;
 
-            const newDefect = {
-                id: Date.now(),
-                location,
-                category,
-                description,
-                status,
-                reporter,
-                date: dateStr
-            };
+                const isEng = currentUser.dept === 'Eng';
+                const isHk = currentUser.dept === 'HK';
 
-            defectDatabase.unshift(newDefect);
-
-            if (SCRIPT_URL) {
-                fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newDefect)
-                }).catch(err => console.log('Sync error:', err));
-            }
-
-            renderTable();
-            updateStats();
-            closeAddDefectModal();
-            alert("Laporan defect berhasil disimpan!");
+                const row = document.createElement('tr');
+                row.className = "hover:bg-slate-900/40 transition-colors";
+                row.innerHTML = `
+                    <td class="px-6 py-4 font-mono font-bold text-white">${d.recordNo}<div class="text-[10px] text-slate-500 font-normal">${d.date || ''}</div></td>
+                    <td class="px-6 py-4">${photoHtml}</td>
+                    <td class="px-6 py-4 font-medium text-slate-300">${floorLabel}<br><span class="text-xs text-slate-500">${d.room}</span></td>
+                    <td class="px-6 py-4 text-slate-300"><span class="font-semibold text-white">${d.item}</span><br><span class="text-xs text-slate-400">${d.note || '-'}</span></td>
+                    <td class="px-6 py-4 text-slate-300">${d.name}<br><span class="bg-slate-800 text-slate-400 px-2 py-0.5 rounded text-[10px] font-bold border border-slate-700">${d.dept}</span></td>
+                    <td class="px-6 py-4 text-center">
+                        <select onchange="updateEngStatus(${d.id}, this.value)" ${!isEng ? 'disabled' : ''} class="text-xs p-2 rounded-xl border ${isEng ? 'bg-blue-500/10 border-blue-500/30 text-blue-400 cursor-pointer' : 'bg-slate-900 border-slate-800 text-slate-500'}">
+                            <option value="Open" ${d.statusEng==='Open'?'selected':''}>Open</option>
+                            <option value="Done Progress" ${d.statusEng==='Done Progress'?'selected':''}>Done Progress</option>
+                            <option value="Resolved" ${d.statusEng==='Resolved'?'selected':''}>Resolved</option>
+                        </select>
+                        ${d.picEng ? `<div class="text-[10px] text-blue-400 mt-1">PIC: ${d.picEng}</div>` : ''}
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <select onchange="updateHkStatus(${d.id}, this.value)" ${!isHk ? 'disabled' : ''} class="text-xs p-2 rounded-xl border ${isHk ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 cursor-pointer' : 'bg-slate-900 border-slate-800 text-slate-500'}">
+                            <option value="Pending" ${d.checkHK==='Pending'?'selected':''}>Pending</option>
+                            <option value="Not Completed" ${d.checkHK==='Not Completed'?'selected':''}>Not Completed</option>
+                            <option value="Verified" ${d.checkHK==='Verified'?'selected':''}>Verified</option>
+                        </select>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <button onclick="runAiAssist(${d.id})" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 mx-auto transition">
+                            <i class="fas fa-sparkles text-amber-400"></i><span>Analyze</span>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
         }
 
-        function toggleStatus(index) {
-            const statuses = ['Pending', 'In Progress', 'Resolved'];
-            let currentIdx = statuses.indexOf(defectDatabase[index].status);
-            let nextStatus = statuses[(currentIdx + 1) % statuses.length];
-            defectDatabase[index].status = nextStatus;
+        function filterCardClick(type) {
+            activeCardFilter = type;
             renderTable();
+        }
+
+        function populateRooms() {
+            const floor = document.getElementById('formFloor').value;
+            const roomSelect = document.getElementById('formRoom');
+            roomSelect.innerHTML = '';
+            const rooms = locationMapping.filter(l => l.floor === floor);
+            rooms.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r.room;
+                opt.innerText = r.room;
+                roomSelect.appendChild(opt);
+            });
+        }
+
+        function onFloorSelectChange() {
+            populateRooms();
+        }
+
+        function openAddModal() {
+            const maxNo = defects.reduce((max, d) => {
+                const m = d.recordNo.match(/\d+$/);
+                return m ? Math.max(max, parseInt(m[0], 10)) : max;
+            }, 85);
+            const nextNo = `EPF-${(maxNo + 1).toString().padStart(6, '0')}`;
+            document.getElementById('newRecordNoDisplay').innerText = nextNo;
+            document.getElementById('formNote').value = '';
+            document.getElementById('formPhotoFile').value = '';
+            document.getElementById('photoPreviewContainer').classList.add('hidden');
+            tempBase64Photo = '';
+            populateRooms();
+            document.getElementById('addModal').classList.remove('hidden');
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').classList.add('hidden');
+        }
+
+        function previewFormPhoto(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    tempBase64Photo = reader.result;
+                    document.getElementById('photoPreviewImg').src = tempBase64Photo;
+                    document.getElementById('photoPreviewContainer').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const floor = document.getElementById('formFloor').value;
+            const room = document.getElementById('formRoom').value;
+            const item = document.getElementById('formItem').value;
+            const note = document.getElementById('formNote').value;
+            const today = new Date().toISOString().split('T')[0];
+
+            const maxNo = defects.reduce((max, d) => {
+                const m = d.recordNo.match(/\d+$/);
+                return m ? Math.max(max, parseInt(m[0], 10)) : max;
+            }, 85);
+            const recordNo = `EPF-${(maxNo + 1).toString().padStart(6, '0')}`;
+
+            const newEntry = {
+                id: Date.now(),
+                recordNo,
+                date: today,
+                floor,
+                room,
+                item,
+                name: currentUser.name,
+                dept: currentUser.dept,
+                statusEng: 'Open',
+                picEng: '',
+                checkHK: 'Pending',
+                note,
+                photo: tempBase64Photo
+            };
+
+            defects.unshift(newEntry);
+            localStorage.setItem('erian_defects_data', JSON.stringify(defects));
+            closeAddModal();
             updateStats();
+            renderTable();
+        }
+
+        function updateEngStatus(id, val) {
+            defects = defects.map(d => {
+                if (d.id === id) {
+                    let pic = d.picEng;
+                    if (val === 'Done Progress' || val === 'Resolved') pic = currentUser.name;
+                    return { ...d, statusEng: val, picEng: pic };
+                }
+                return d;
+            });
+            localStorage.setItem('erian_defects_data', JSON.stringify(defects));
+            updateStats();
+            renderTable();
+        }
+
+        function updateHkStatus(id, val) {
+            defects = defects.map(d => {
+                if (d.id === id) return { ...d, checkHK: val };
+                return d;
+            });
+            localStorage.setItem('erian_defects_data', JSON.stringify(defects));
+            updateStats();
+            renderTable();
+        }
+
+        function openQuickUpdateModal() {
+            const select = document.getElementById('quickTicketSelect');
+            select.innerHTML = '<option value="">-- Pilih Tiket --</option>';
+            defects.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.id;
+                opt.innerText = `${d.recordNo} - ${d.item} (${d.room})`;
+                select.appendChild(opt);
+            });
+            document.getElementById('quickTicketDetailBox').classList.add('hidden');
+            setupQuickStatusDropdown();
+            document.getElementById('quickModal').classList.remove('hidden');
+        }
+
+        function closeQuickUpdateModal() {
+            document.getElementById('quickModal').classList.add('hidden');
+        }
+
+        function setupQuickStatusDropdown() {
+            const label = document.getElementById('quickStatusLabel');
+            const select = document.getElementById('quickStatusSelect');
+            select.innerHTML = '';
+            if (currentUser.dept === 'Eng') {
+                label.innerText = "Status Defect (Eng)";
+                ['Open', 'Done Progress', 'Resolved'].forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s; opt.innerText = s;
+                    select.appendChild(opt);
+                });
+            } else {
+                label.innerText = "Verifikasi Kebersihan (HK)";
+                [['Pending', 'Pending Check'], ['Not Completed', 'Not Completed'], ['Verified', 'Verified Clean']].forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s[0]; opt.innerText = s[1];
+                    select.appendChild(opt);
+                });
+            }
+        }
+
+        function onQuickTicketChange() {
+            const id = parseInt(document.getElementById('quickTicketSelect').value);
+            const box = document.getElementById('quickTicketDetailBox');
+            if (!id) {
+                box.classList.add('hidden');
+                return;
+            }
+            const d = defects.find(item => item.id === id);
+            if (d) {
+                document.getElementById('qDetailReporter').innerText = `${d.name} (${d.dept})`;
+                document.getElementById('qDetailLocation').innerText = `Lantai ${d.floor} - ${d.room}`;
+                document.getElementById('qDetailNote').innerText = d.note || '-';
+                box.classList.remove('hidden');
+                document.getElementById('quickStatusSelect').value = currentUser.dept === 'Eng' ? d.statusEng : d.checkHK;
+            }
+        }
+
+        function saveQuickUpdate() {
+            const id = parseInt(document.getElementById('quickTicketSelect').value);
+            const val = document.getElementById('quickStatusSelect').value;
+            if (!id) return;
+            if (currentUser.dept === 'Eng') updateEngStatus(id, val);
+            else updateHkStatus(id, val);
+            closeQuickUpdateModal();
+        }
+
+        function openChangePassModal() {
+            document.getElementById('oldPassInput').value = '';
+            document.getElementById('newPassInput').value = '';
+            document.getElementById('confirmPassInput').value = '';
+            document.getElementById('passMsgBox').classList.add('hidden');
+            document.getElementById('passModal').classList.remove('hidden');
+        }
+
+        function closeChangePassModal() {
+            document.getElementById('passModal').classList.add('hidden');
+        }
+
+        function handlePasswordChangeSubmit(e) {
+            e.preventDefault();
+            const oldP = document.getElementById('oldPassInput').value;
+            const newP = document.getElementById('newPassInput').value;
+            const confP = document.getElementById('confirmPassInput').value;
+            const msgBox = document.getElementById('passMsgBox');
+
+            if (oldP !== currentUser.pass) {
+                msgBox.className = "p-3 rounded-xl text-xs bg-red-500/10 border border-red-500/30 text-red-400";
+                msgBox.innerText = "Password lama tidak sesuai.";
+                msgBox.classList.remove('hidden');
+                return;
+            }
+            if (newP.length < 6) {
+                msgBox.className = "p-3 rounded-xl text-xs bg-red-500/10 border border-red-500/30 text-red-400";
+                msgBox.innerText = "Password baru minimal 6 karakter.";
+                msgBox.classList.remove('hidden');
+                return;
+            }
+            if (newP !== confP) {
+                msgBox.className = "p-3 rounded-xl text-xs bg-red-500/10 border border-red-500/30 text-red-400";
+                msgBox.innerText = "Konfirmasi password baru tidak cocok.";
+                msgBox.classList.remove('hidden');
+                return;
+            }
+
+            userList = userList.map(u => u.email === currentUser.email ? { ...u, pass: newP } : u);
+            currentUser.pass = newP;
+            localStorage.setItem('erian_users_list', JSON.stringify(userList));
+            localStorage.setItem('erian_current_user', JSON.stringify(currentUser));
+
+            msgBox.className = "p-3 rounded-xl text-xs bg-emerald-500/10 border border-emerald-500/30 text-emerald-400";
+            msgBox.innerText = "Password berhasil diperbarui!";
+            msgBox.classList.remove('hidden');
+            setTimeout(() => closeChangePassModal(), 1500);
+        }
+
+        function runAiAssist(id) {
+            const d = defects.find(item => item.id === id);
+            if (!d) return;
+            const note = d.note ? d.note.toLowerCase() : "";
+            let cause = `Penurunan kualitas fisik atau estetika pada komponen ${d.item.toLowerCase()} di area ${d.room}.`;
+            let solution = `Lakukan pengecekan menyeluruh dan perbaikan finishing sesuai standar hotel.`;
+
+            if (note.includes('fungus') || note.includes('jamur') || note.includes('bocor') || note.includes('leaking')) {
+                cause = `Terdeteksi masalah kelembapan tinggi atau rembesan pipa di area ${d.room}.`;
+                solution = `1. Bersihkan area dari jamur menggunakan cairan fungisida.\n2. Periksa sumber kebocoran pipa terdekat.`;
+            } else if (note.includes('pecah') || note.includes('sobek') || note.includes('kelupas')) {
+                cause = `Kerusakan material fisik akibat usia pakai atau gesekan.`;
+                solution = `1. Ganti material dengan unit baru.\n2. Lakukan penambalan atau perapihan secara presisi.`;
+            }
+
+            const text = `Analisis Erian AI Assistant:\n• Lokasi: ${d.room} (Lantai ${d.floor})\n• Kategori: ${d.item}\n• Catatan: "${d.note || '-'}"\n\n🔍 Hipotesis Akar Masalah:\n• ${cause}\n\n🛠️ Rekomendasi Solusi Teknis:\n${solution}`;
+            document.getElementById('aiContentBox').innerText = text;
+            document.getElementById('aiModal').classList.remove('hidden');
+        }
+
+        function closeAiModal() {
+            document.getElementById('aiModal').classList.add('hidden');
+        }
+
+        function openZoomModal(src) {
+            document.getElementById('zoomedImg').src = src;
+            document.getElementById('zoomModal').classList.remove('hidden');
+        }
+
+        function closeZoomModal() {
+            document.getElementById('zoomModal').classList.add('hidden');
         }
 
         function exportToExcel() {
-            let csvContent = "data:text/csv;charset=utf-8,Lokasi,Kategori,Keterangan,Status,Pelapor,Tanggal\n";
-            defectDatabase.forEach(d => {
-                csvContent += `"${d.location}","${d.category}","${d.description}","${d.status}","${d.reporter}","${d.date}"\n`;
+            let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"/></head><body><table>`;
+            html += `<tr><th>No. Record</th><th>Date</th><th>Floor</th><th>Room</th><th>Item</th><th>Reporter</th><th>Dept</th><th>Eng Status</th><th>HK Status</th><th>Note</th></tr>`;
+            defects.forEach(d => {
+                html += `<tr><td>${d.recordNo}</td><td>${d.date||''}</td><td>${d.floor}</td><td>${d.room}</td><td>${d.item}</td><td>${d.name}</td><td>${d.dept}</td><td>${d.statusEng}</td><td>${d.checkHK}</td><td>${d.note||''}</td></tr>`;
             });
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "Erian_Defect_Report.csv");
+            html += `</table></body></html>`;
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Erian_Defect_Report_${new Date().toISOString().split('T')[0]}.xls`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
