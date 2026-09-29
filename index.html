@@ -63,6 +63,8 @@
             const [showConfirmPass, setShowConfirmPass] = useState(false);
             const [passMsg, setPassMsg] = useState({ text: '', type: '' });
 
+            const [worstRoomModal, setWorstRoomModal] = useState(false);
+
             const handleLogin = (e) => {
                 e.preventDefault();
                 const matched = userList.find(
@@ -74,7 +76,7 @@
                     setAuthError('');
                     setAuthPasswordInput('');
                 } else {
-                    setAuthError('Email atau password salah. Silakan periksa kembali kredensial Anda.');
+                    setAuthError('Email atau password salah. Silakan periksa kembali.');
                 }
             };
 
@@ -91,29 +93,20 @@
                     setPassMsg({ text: 'Password lama tidak sesuai.', type: 'error' });
                     return;
                 }
-
                 if (newPassInput.length < 6) {
                     setPassMsg({ text: 'Password baru minimal harus 6 karakter.', type: 'error' });
                     return;
                 }
-
                 if (newPassInput === oldPassInput) {
                     setPassMsg({ text: 'Password baru tidak boleh sama dengan password lama.', type: 'error' });
                     return;
                 }
-
                 if (newPassInput !== confirmPassInput) {
                     setPassMsg({ text: 'Konfirmasi password baru tidak cocok.', type: 'error' });
                     return;
                 }
 
-                const updatedList = userList.map(u => {
-                    if (u.email === currentUser.email) {
-                        return { ...u, pass: newPassInput };
-                    }
-                    return u;
-                });
-
+                const updatedList = userList.map(u => u.email === currentUser.email ? { ...u, pass: newPassInput } : u);
                 setUserList(updatedList);
                 const updatedCurrent = { ...currentUser, pass: newPassInput };
                 setCurrentUser(updatedCurrent);
@@ -231,7 +224,6 @@
             const [quickUpdateOpen, setQuickUpdateOpen] = useState(false);
             const [quickTicketId, setQuickTicketId] = useState('');
             const [updateValue, setUpdateValue] = useState('');
-
             const [enlargedPhoto, setEnlargedPhoto] = useState(null);
 
             const [aiModalOpen, setAiModalOpen] = useState(false);
@@ -300,6 +292,19 @@
             
             const nextFormattedRecordNo = `EPF-${nextRecordNum.toString().padStart(6, '0')}`;
 
+            // Kalkulasi 10 Worst Rooms (Kamar dengan defect terbanyak)
+            const worstRoomsList = useMemo(() => {
+                const counts = {};
+                defects.forEach(d => {
+                    const r = d.room || 'Unknown';
+                    counts[r] = (counts[r] || 0) + 1;
+                });
+                return Object.entries(counts)
+                    .map(([room, count]) => ({ room, count }))
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 10);
+            }, [defects]);
+
             const handleFloorChange = (e) => {
                 const floor = e.target.value;
                 setFormFloor(floor);
@@ -349,12 +354,7 @@
                             updatedPic = currentUser.name;
                         }
                         const histEntry = { timestamp: new Date().toLocaleString(), action: `Eng status changed to '${val}' by ${currentUser.name}` };
-                        return { 
-                            ...d, 
-                            statusEng: val, 
-                            picEng: updatedPic, 
-                            history: [...(d.history || []), histEntry] 
-                        };
+                        return { ...d, statusEng: val, picEng: updatedPic, history: [...(d.history || []), histEntry] };
                     }
                     return d;
                 }));
@@ -364,11 +364,7 @@
                 setDefects(defects.map(d => {
                     if (d.id === id) {
                         const histEntry = { timestamp: new Date().toLocaleString(), action: `HK verification changed to '${val}' by ${currentUser.name}` };
-                        return { 
-                            ...d, 
-                            checkHK: val, 
-                            history: [...(d.history || []), histEntry] 
-                        };
+                        return { ...d, checkHK: val, history: [...(d.history || []), histEntry] };
                     }
                     return d;
                 }));
@@ -387,11 +383,8 @@
                 e.preventDefault();
                 const def = defects.find(d => d.id === quickTicketId);
                 if (def) {
-                    if (currentUser.dept === 'Eng') {
-                        updateEngStatus(def.id, updateValue);
-                    } else {
-                        updateHkStatus(def.id, updateValue);
-                    }
+                    if (currentUser.dept === 'Eng') updateEngStatus(def.id, updateValue);
+                    else updateHkStatus(def.id, updateValue);
                 }
                 setQuickUpdateOpen(false);
                 setQuickTicketId('');
@@ -406,28 +399,23 @@
                     const room = defect.room || "Area Hotel";
                     const floor = defect.floor || "L";
                     
-                    let cause = `Penurunan kualitas fisik atau estetika pada komponen ${item.toLowerCase()} di area ${room} (Lantai ${floor}).`;
-                    let solution = `Lakukan pengecekan menyeluruh, perbaikan struktur/finishing, dan tes fungsional ulang.`;
+                    let cause = `Penurunan kualitas fisik pada komponen ${item.toLowerCase()} di area ${room} (Lantai ${floor}).`;
+                    let solution = `Lakukan pengecekan menyeluruh dan perbaikan finishing/struktur ulang.`;
 
                     if (note.includes('fungus') || note.includes('jamur') || note.includes('noda') || note.includes('bocor') || note.includes('leaking')) {
-                        cause = `Terdeteksi masalah kelembapan tinggi, sirkulasi udara kurang, atau rembesan pipa di area ${room}.`;
-                        solution = `1. Bersihkan area dari jamur menggunakan cairan fungisida khusus.\n2. Periksa sumber kebocoran dari pipa terdekat.\n3. Keringkan dan lakukan pengecekan ulang setelah selesai.`;
+                        cause = `Terdeteksi kelembapan tinggi atau rembesan pipa di area ${room}.`;
+                        solution = `1. Bersihkan area dari jamur menggunakan cairan fungisida.\n2. Periksa sumber kebocoran pipa terdekat.\n3. Keringkan dan cat ulang.`;
                     } else if (note.includes('pecah') || note.includes('sobek') || note.includes('hancur') || note.includes('retak') || note.includes('kelupas')) {
-                        cause = `Kerusakan material fisik pada ${item.toLowerCase()} akibat usia pakai, gesekan, atau benturan.`;
-                        solution = `1. Ganti material yang rusak dengan unit baru sesuai standar hotel.\n2. Lakukan penambalan atau perapihan nat/sambungan secara presisi.`;
-                    } else if (note.includes('mati') || note.includes('korslet') || note.includes('biru') || note.includes('elektrik')) {
-                        cause = `Gangguan pada sambungan kabel, modul kelistrikan, atau tegangan daya unit di ${room}.`;
-                        solution = `1. Periksa arus listrik dengan multimeter.\n2. Perbaiki jalur perkabelan atau ganti modul elektrikal yang bermasalah.`;
+                        cause = `Kerusakan material fisik pada ${item.toLowerCase()} akibat usia pakai atau benturan.`;
+                        solution = `1. Ganti material rusak dengan unit baru standar hotel.\n2. Lakukan penambalan nat/sambungan secara presisi.`;
                     }
 
-                    const analysisText = `Analisis Engineering & Property (Erian AI):\n` +
+                    const analysisText = `Analisis Erian AI:\n` +
                         `• Lokasi: ${room} (Lantai ${floor})\n` +
                         `• Kategori: ${item}\n` +
-                        `• Catatan Lapangan: "${defect.note || '-'}"\n\n` +
-                        `🔍 Hipotesis Akar Masalah:\n` +
-                        `• ${cause}\n\n` +
-                        `🛠️ Rekomendasi Solusi Teknis:\n` +
-                        `${solution}`;
+                        `• Catatan: "${defect.note || '-'}"\n\n` +
+                        `🔍 Akar Masalah:\n• ${cause}\n\n` +
+                        `🛠️ Rekomendasi Solusi:\n${solution}`;
 
                     setAiAnalysisResult(analysisText);
                     setIsAnalyzing(false);
@@ -436,35 +424,13 @@
 
             const exportToExcelTable = () => {
                 const headers = ["No. Record", "Date", "Floor", "Room", "Item", "Reporter", "Dept", "Eng Status", "Eng PIC", "HK Status", "Finding Note"];
-                
                 let htmlTable = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">`;
-                htmlTable += `<head><meta charset="utf-8"/><style>`;
-                htmlTable += `table { border-collapse: collapse; width: 100%; font-family: Calibri, sans-serif; font-size: 11pt; }`;
-                htmlTable += `th { background-color: #333b44; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #000000; padding: 6px; }`;
-                htmlTable += `td { border: 0.5pt solid #d9d9d9; vertical-align: middle; padding: 5px; }`;
-                htmlTable += `</style></head><body>`;
-                
-                htmlTable += `<table>`;
-                htmlTable += `<tr>`;
-                headers.forEach(h => { htmlTable += `<th>${h}</th>`; });
+                htmlTable += `<head><meta charset="utf-8"/><style>table{border-collapse:collapse;width:100%;font-family:Calibri,sans-serif;font-size:11pt;}th{background:#333b44;color:#fff;font-weight:bold;border:0.5pt solid #000;padding:6px;}td{border:0.5pt solid #d9d9d9;padding:5px;}</style></head><body><table><tr>`;
+                headers.forEach(h => htmlTable += `<th>${h}</th>`);
                 htmlTable += `</tr>`;
-
                 filteredData.forEach(d => {
-                    htmlTable += `<tr>`;
-                    htmlTable += `<td>${d.recordNo}</td>`;
-                    htmlTable += `<td>${d.date || ''}</td>`;
-                    htmlTable += `<td>${d.floor}</td>`;
-                    htmlTable += `<td>${d.room}</td>`;
-                    htmlTable += `<td>${d.item}</td>`;
-                    htmlTable += `<td>${d.name}</td>`;
-                    htmlTable += `<td>${d.dept}</td>`;
-                    htmlTable += `<td>${d.statusEng}</td>`;
-                    htmlTable += `<td>${d.picEng || ''}</td>`;
-                    htmlTable += `<td>${d.checkHK}</td>`;
-                    htmlTable += `<td>${d.note || ''}</td>`;
-                    htmlTable += `</tr>`;
+                    htmlTable += `<tr><td>${d.recordNo}</td><td>${d.date||''}</td><td>${d.floor}</td><td>${d.room}</td><td>${d.item}</td><td>${d.name}</td><td>${d.dept}</td><td>${d.statusEng}</td><td>${d.picEng||''}</td><td>${d.checkHK}</td><td>${d.note||''}</td></tr>`;
                 });
-
                 htmlTable += `</table></body></html>`;
 
                 const blob = new Blob([htmlTable], { type: 'application/vnd.ms-excel' });
@@ -514,26 +480,26 @@
                             </div>
                             <div>
                                 <h1 className="text-xl font-bold text-slate-800 tracking-wide uppercase">Erian Defect Tracker</h1>
-                                <p className="text-xs text-slate-500 mt-1">Masukkan Email dan Password resmi Anda untuk masuk.</p>
+                                <p className="text-xs text-slate-500 mt-1">Masukkan Email dan Password resmi Anda.</p>
                             </div>
 
                             {authError && (
-                                <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-xs flex items-start gap-2 text-left">
-                                    <i className="fa-solid fa-circle-exclamation text-red-500 mt-0.5"></i>
+                                <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-xs flex items-center gap-2 text-left">
+                                    <i className="fa-solid fa-circle-exclamation text-red-500 shrink-0"></i>
                                     <span>{authError}</span>
                                 </div>
                             )}
 
                             <form onSubmit={handleLogin} className="space-y-4 text-left">
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Email HOD / Staff</label>
+                                    <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Email</label>
                                     <div className="relative">
                                         <i className="fa-solid fa-envelope absolute left-3 top-3.5 text-slate-400"></i>
                                         <input 
                                             type="email" 
                                             value={authEmailInput} 
                                             onChange={(e) => setAuthEmailInput(e.target.value)} 
-                                            placeholder="contoh: zainalidris22@gmail.com" 
+                                            placeholder="zainalidris22@gmail.com" 
                                             required
                                             className="w-full pl-9 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-slate-500 bg-white"
                                         />
@@ -548,35 +514,21 @@
                                             type={showLoginPass ? "text" : "password"} 
                                             value={authPasswordInput} 
                                             onChange={(e) => setAuthPasswordInput(e.target.value)} 
-                                            placeholder="Masukkan password Anda" 
+                                            placeholder="Password" 
                                             required
                                             className="w-full pl-9 pr-10 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-slate-500 bg-white"
                                         />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowLoginPass(!showLoginPass)}
-                                            className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
-                                        >
+                                        <button type="button" onClick={() => setShowLoginPass(!showLoginPass)} className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer">
                                             <i className={`fa-solid ${showLoginPass ? 'fa-eye-slash' : 'fa-eye'}`}></i>
                                         </button>
                                     </div>
                                 </div>
 
-                                <button
-                                    type="submit"
-                                    className="w-full bg-[#333b44] hover:bg-[#22272e] text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition shadow-lg cursor-pointer"
-                                >
+                                <button type="submit" className="w-full bg-[#333b44] hover:bg-[#22272e] text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition shadow-lg cursor-pointer">
                                     <i className="fa-solid fa-right-to-bracket"></i>
                                     <span>Masuk Aplikasi</span>
                                 </button>
                             </form>
-                            
-                            <div className="text-left bg-slate-50 p-3 rounded-xl border border-slate-200 text-[11px] text-slate-600 space-y-1">
-                                <p className="font-bold text-slate-700">Contoh Akun Akses:</p>
-                                <p>• FO: zainalidris22@gmail.com / pass: zainal123</p>
-                                <p>• HK: SarasAndini89@gmail.com / pass: saras123</p>
-                                <p>• Eng: budihartanto23@gmail.com / pass: budi123</p>
-                            </div>
                         </div>
                     </div>
                 );
@@ -585,38 +537,44 @@
             return (
                 <div className="min-h-screen bg-[#cbd5e1] text-slate-800 font-sans pb-10">
                     
-                    {/* Header Bar */}
+                    {/* Header Mobile Optimized */}
                     <header className="bg-[#333b44] text-white shadow-md sticky top-0 z-40 border-b border-[#47515e]">
-                        <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-                            <div className="flex items-center space-x-3">
-                                <div className="bg-[#47515e] p-2 rounded-xl text-slate-200 font-bold flex items-center justify-center border border-slate-500 shadow-inner">
-                                    <i className="fa-solid fa-building text-lg"></i>
-                                </div>
-                                <div>
-                                    <h1 className="font-bold text-base tracking-wide uppercase text-slate-100 flex items-center gap-2">
-                                        ERIAN DEFECT FIND OUT
-                                        <span className="bg-[#22272e] text-slate-300 text-[10px] px-2 py-0.5 rounded-full border border-slate-600">EPF System</span>
-                                    </h1>
-                                    <p className="text-xs text-slate-400">
-                                        Logged in as: <span className="text-slate-200 font-medium">{currentUser.name} ({currentUser.dept})</span>
-                                    </p>
+                        <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-2">
+                            <div className="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
+                                <div className="flex items-center space-x-2">
+                                    <div className="bg-[#47515e] p-2 rounded-xl text-slate-200 font-bold flex items-center justify-center border border-slate-500 shadow-inner">
+                                        <i className="fa-solid fa-building text-base"></i>
+                                    </div>
+                                    <div>
+                                        <h1 className="font-bold text-xs sm:text-sm tracking-wide uppercase text-slate-100 flex items-center gap-1.5">
+                                            ERIAN DEFECT FIND OUT
+                                            <span className="bg-[#22272e] text-slate-300 text-[9px] px-1.5 py-0.5 rounded-full border border-slate-600">EPF</span>
+                                        </h1>
+                                        <p className="text-[11px] text-slate-400 truncate max-w-[200px] sm:max-w-none">
+                                            {currentUser.name} ({currentUser.dept})
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <span className="bg-[#22272e] text-slate-300 text-xs px-3 py-1.5 rounded-lg border border-slate-600 hidden sm:flex items-center gap-1.5">
-                                    <i className="fa-solid fa-shield-check text-emerald-400"></i> 
-                                    Role: {currentUser.dept}
-                                </span>
+                            
+                            <div className="flex items-center gap-1.5 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-600">
+                                <button
+                                    onClick={() => setWorstRoomModal(true)}
+                                    className="bg-amber-600 hover:bg-amber-500 text-white text-xs px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 transition cursor-pointer shadow"
+                                >
+                                    <i className="fa-solid fa-triangle-exclamation text-yellow-200"></i>
+                                    <span>10 Worst Rooms</span>
+                                </button>
                                 <button
                                     onClick={() => setChangePassOpen(true)}
-                                    className="bg-slate-700 hover:bg-slate-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition cursor-pointer border border-slate-600"
+                                    className="bg-slate-700 hover:bg-slate-600 text-white text-xs px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 transition cursor-pointer"
                                 >
                                     <i className="fa-solid fa-key text-amber-400"></i>
-                                    <span className="hidden md:inline">Ganti Password</span>
+                                    <span className="hidden md:inline">Password</span>
                                 </button>
                                 <button
                                     onClick={handleLogout}
-                                    className="bg-red-600/80 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition cursor-pointer border border-red-500"
+                                    className="bg-red-600 hover:bg-red-500 text-white text-xs px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 transition cursor-pointer"
                                 >
                                     <i className="fa-solid fa-right-from-bracket"></i>
                                     <span>Logout</span>
@@ -625,28 +583,20 @@
                         </div>
                     </header>
 
-                    {/* Banner */}
-                    <div className="max-w-7xl mx-auto px-4 pt-6 pb-2">
-                        <div className="bg-[#2a3038] border border-slate-500 p-6 rounded-xl shadow-lg flex flex-col sm:flex-row justify-between items-center gap-4">
-                            <div className="flex flex-col items-center sm:items-start text-center sm:text-left z-10 w-full pl-2">
-                                <h2 className="font-bold text-white text-2xl tracking-wide font-sans">ERIAN HOTEL</h2>
-                                <p className="text-sm text-slate-300 font-medium tracking-wide">Sistem Pelaporan dan Monitoring Kerusakan Fasilitas (Defect Tracker)</p>
+                    {/* Banner Mobile Clean */}
+                    <div className="max-w-7xl mx-auto px-4 pt-4 pb-2">
+                        <div className="bg-[#2a3038] border border-slate-500 p-5 rounded-2xl shadow-lg flex flex-col sm:flex-row justify-between items-center gap-4">
+                            <div className="text-center sm:text-left">
+                                <h2 className="font-bold text-white text-xl sm:text-2xl tracking-wide">ERIAN HOTEL</h2>
+                                <p className="text-xs sm:text-sm text-slate-300 font-medium">Sistem Monitoring & Pelaporan Kerusakan Fasilitas</p>
                             </div>
-                            
-                            <div className="z-10 mt-4 sm:mt-0 whitespace-nowrap flex flex-wrap gap-3 justify-center sm:justify-end">
-                                <button 
-                                    onClick={() => setQuickUpdateOpen(true)}
-                                    className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-bold text-sm flex items-center space-x-2 transition shadow-lg border border-blue-500/50 cursor-pointer"
-                                >
+                            <div className="flex flex-wrap gap-2 justify-center w-full sm:w-auto">
+                                <button onClick={() => setQuickUpdateOpen(true)} className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-1.5 shadow transition cursor-pointer">
                                     <i className="fa-solid fa-circle-check"></i>
                                     <span>Update Defect</span>
                                 </button>
-
                                 {currentUser.dept !== 'Eng' && (
-                                    <button 
-                                        onClick={() => setIsModalOpen(true)}
-                                        className="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2.5 rounded-xl font-bold text-sm flex items-center space-x-2 transition shadow-lg border border-amber-500/50 cursor-pointer"
-                                    >
+                                    <button onClick={() => setIsModalOpen(true)} className="flex-1 sm:flex-none bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-1.5 shadow transition cursor-pointer">
                                         <i className="fa-solid fa-circle-plus"></i>
                                         <span>Submit Report</span>
                                     </button>
@@ -655,57 +605,63 @@
                         </div>
                     </div>
 
-                    <main className="max-w-7xl mx-auto px-4 py-4">
-                        {/* Statistics Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                            <div onClick={() => setActiveFilterCard('Total')} className={`p-4 rounded-xl shadow border cursor-pointer transition-all ${activeFilterCard === 'Total' ? 'bg-white border-red-600 ring-2 ring-red-300' : 'bg-white border-slate-200 hover:bg-red-50'}`}>
-                                <p className="text-xs text-red-600 font-bold uppercase">TOTAL FINDING</p>
-                                <h3 className="text-2xl font-bold text-red-600 mt-1">{totalFindings}</h3>
+                    <main className="max-w-7xl mx-auto px-4 py-2">
+                        {/* Statistics Cards Mobile Grid */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                            <div onClick={() => setActiveFilterCard('Total')} className={`p-3.5 rounded-xl shadow border cursor-pointer transition-all ${activeFilterCard === 'Total' ? 'bg-white border-red-600 ring-2 ring-red-300' : 'bg-white border-slate-200 hover:bg-red-50'}`}>
+                                <div className="flex justify-between items-start">
+                                    <p className="text-[11px] text-red-600 font-bold uppercase">TOTAL FINDING</p>
+                                    <i className="fa-solid fa-clipboard-list text-red-400 text-xs"></i>
+                                </div>
+                                <h3 className="text-xl sm:text-2xl font-bold text-red-600 mt-1">{totalFindings}</h3>
                             </div>
-                            <div onClick={() => setActiveFilterCard('Open / Pending')} className={`p-4 rounded-xl shadow border cursor-pointer transition-all ${activeFilterCard === 'Open / Pending' ? 'bg-white border-amber-500 ring-2 ring-amber-300' : 'bg-white border-slate-200 hover:bg-amber-50'}`}>
-                                <p className="text-xs text-amber-600 font-bold uppercase">OPEN / PENDING</p>
-                                <h3 className="text-2xl font-bold text-amber-600 mt-1">{openPendingCount}</h3>
+                            
+                            <div onClick={() => setActiveFilterCard('Open / Pending')} className={`p-3.5 rounded-xl shadow border cursor-pointer transition-all ${activeFilterCard === 'Open / Pending' ? 'bg-white border-amber-500 ring-2 ring-amber-300' : 'bg-white border-slate-200 hover:bg-amber-50'}`}>
+                                <div className="flex justify-between items-start">
+                                    <p className="text-[11px] text-amber-600 font-bold uppercase">OPEN / PENDING</p>
+                                    <i className="fa-solid fa-clock text-amber-400 text-xs"></i>
+                                </div>
+                                <h3 className="text-xl sm:text-2xl font-bold text-amber-600 mt-1">{openPendingCount}</h3>
                             </div>
-                            <div onClick={() => setActiveFilterCard('Done Progress')} className={`p-4 rounded-xl shadow border cursor-pointer transition-all ${activeFilterCard === 'Done Progress' ? 'bg-white border-blue-400 ring-2 ring-blue-200' : 'bg-white border-slate-200 hover:bg-blue-50'}`}>
-                                <p className="text-xs text-blue-600 font-bold uppercase">Done Progress (Eng)</p>
-                                <h3 className="text-2xl font-bold text-blue-600 mt-1">{doneProgressCount}</h3>
+
+                            <div onClick={() => setActiveFilterCard('Done Progress')} className={`p-3.5 rounded-xl shadow border cursor-pointer transition-all ${activeFilterCard === 'Done Progress' ? 'bg-white border-blue-400 ring-2 ring-blue-200' : 'bg-white border-slate-200 hover:bg-blue-50'}`}>
+                                <div className="flex justify-between items-start">
+                                    <p className="text-[11px] text-blue-600 font-bold uppercase">Done Progress</p>
+                                    <i className="fa-solid fa-screwdriver-wrench text-blue-400 text-xs"></i>
+                                </div>
+                                <h3 className="text-xl sm:text-2xl font-bold text-blue-600 mt-1">{doneProgressCount}</h3>
                             </div>
-                            <div onClick={() => setActiveFilterCard('Verified Clean')} className={`p-4 rounded-xl shadow border cursor-pointer transition-all ${activeFilterCard === 'Verified Clean' ? 'bg-white border-emerald-400 ring-2 ring-emerald-200' : 'bg-white border-slate-200 hover:bg-emerald-50'}`}>
-                                <p className="text-xs text-emerald-600 font-bold uppercase">Verified Clean (HK)</p>
-                                <h3 className="text-2xl font-bold text-emerald-600 mt-1">{verifiedCleanCount}</h3>
+
+                            <div onClick={() => setActiveFilterCard('Verified Clean')} className={`p-3.5 rounded-xl shadow border cursor-pointer transition-all ${activeFilterCard === 'Verified Clean' ? 'bg-white border-emerald-400 ring-2 ring-emerald-200' : 'bg-white border-slate-200 hover:bg-emerald-50'}`}>
+                                <div className="flex justify-between items-start">
+                                    <p className="text-[11px] text-emerald-600 font-bold uppercase">Verified Clean</p>
+                                    <i className="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+                                </div>
+                                <h3 className="text-xl sm:text-2xl font-bold text-emerald-600 mt-1">{verifiedCleanCount}</h3>
                             </div>
                         </div>
 
-                        {/* Filter and Search Bar */}
-                        <div className="bg-white p-4 rounded-xl shadow border border-slate-200 mb-6 flex flex-col gap-4">
-                            <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-                                <div className="w-full md:w-1/3 relative">
-                                    <i className="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-slate-400"></i>
+                        {/* Search & Filter Bar */}
+                        <div className="bg-white p-3.5 rounded-xl shadow border border-slate-200 mb-4 space-y-3">
+                            <div className="flex flex-col sm:flex-row gap-2.5">
+                                <div className="flex-1 relative">
+                                    <i className="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
                                     <input 
                                         type="text" 
                                         value={search}
                                         onChange={(e) => setSearch(e.target.value)}
                                         placeholder="Cari ruang, item, atau pelapor..." 
-                                        className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:border-slate-500"
+                                        className="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:border-slate-500"
                                     />
                                 </div>
-                                
-                                <div className="flex flex-wrap gap-2 w-full md:w-auto items-center">
-                                    <select 
-                                        value={filterStatus} 
-                                        onChange={(e) => setFilterStatus(e.target.value)}
-                                        className="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none cursor-pointer"
-                                    >
+                                <div className="flex gap-2">
+                                    <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="flex-1 sm:flex-none px-2.5 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none cursor-pointer">
                                         <option value="">Semua Status</option>
                                         <option value="Open">Open</option>
                                         <option value="Done Progress">Done Progress</option>
                                         <option value="Resolved">Resolved</option>
                                     </select>
-                                    <select 
-                                        value={filterFloor} 
-                                        onChange={(e) => setFilterFloor(e.target.value)}
-                                        className="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none cursor-pointer"
-                                    >
+                                    <select value={filterFloor} onChange={(e) => setFilterFloor(e.target.value)} className="flex-1 sm:flex-none px-2.5 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none cursor-pointer">
                                         <option value="">Semua Area</option>
                                         {Array.from(new Set(locationMapping.map(loc => loc.floor))).map(f => (
                                             <option key={f} value={f}>{f === 'L' ? 'Lobby (L)' : `Lantai ${f}`}</option>
@@ -714,35 +670,18 @@
                                 </div>
                             </div>
 
-                            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
-                                <div className="flex flex-wrap items-center gap-2">
-                                    <span className="text-xs font-semibold text-slate-500 uppercase">Periode Tanggal:</span>
-                                    <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-300 px-3 py-1.5 rounded-lg text-xs">
-                                        <input 
-                                            type="date" 
-                                            value={startDate} 
-                                            onChange={(e) => setStartDate(e.target.value)} 
-                                            className="bg-transparent focus:outline-none text-slate-700 cursor-pointer" 
-                                        />
-                                        <span className="text-slate-400">s/d</span>
-                                        <input 
-                                            type="date" 
-                                            value={endDate} 
-                                            onChange={(e) => setEndDate(e.target.value)} 
-                                            className="bg-transparent focus:outline-none text-slate-700 cursor-pointer" 
-                                        />
-                                        {(startDate || endDate) && (
-                                            <button onClick={() => {setStartDate(''); setEndDate('');}} className="text-red-500 font-bold ml-1 px-1 hover:bg-red-50 rounded cursor-pointer">✕</button>
-                                        )}
-                                    </div>
+                            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                                <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-300 px-2.5 py-1.5 rounded-lg text-[11px]">
+                                    <span className="text-slate-500 font-bold">Tanggal:</span>
+                                    <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-transparent focus:outline-none text-slate-700 cursor-pointer" />
+                                    <span>s/d</span>
+                                    <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="bg-transparent focus:outline-none text-slate-700 cursor-pointer" />
+                                    {(startDate || endDate) && <button onClick={() => {setStartDate(''); setEndDate('');}} className="text-red-500 font-bold ml-1">✕</button>}
                                 </div>
 
-                                <button 
-                                    onClick={exportToExcelTable}
-                                    className="bg-emerald-700 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center space-x-2 transition shadow border border-emerald-500/50 cursor-pointer"
-                                >
+                                <button onClick={exportToExcelTable} className="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-bold text-xs flex items-center space-x-1.5 transition shadow cursor-pointer">
                                     <i className="fa-solid fa-file-excel"></i>
-                                    <span>Export Report (Excel)</span>
+                                    <span>Export Excel</span>
                                 </button>
                             </div>
                         </div>
@@ -750,14 +689,14 @@
                         {/* Data Table */}
                         <div className="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
                             <div className="overflow-x-auto">
-                                <table className="w-full text-left border-collapse text-sm">
+                                <table className="w-full text-left border-collapse text-xs sm:text-sm">
                                     <thead>
                                         <tr className="bg-[#333b44] text-slate-100 font-semibold border-b border-slate-600">
                                             <th className="p-3">No. Record</th>
                                             <th className="p-3">Foto</th>
                                             <th className="p-3">Floor / Area</th>
                                             <th className="p-3">Item Kerusakan</th>
-                                            <th className="p-3">Pelapor (HOD)</th>
+                                            <th className="p-3">Pelapor</th>
                                             <th className="p-3">Status (Eng)</th>
                                             <th className="p-3">Check (HK)</th>
                                             <th className="p-3 text-center">AI Assist</th>
@@ -766,37 +705,33 @@
                                     <tbody className="divide-y divide-slate-200">
                                         {filteredData.length > 0 ? filteredData.map((item) => (
                                             <tr key={item.id} className="hover:bg-slate-50 transition">
-                                                <td className="p-3 font-mono text-sm font-bold text-[#333b44]">
+                                                <td className="p-3 font-mono font-bold text-[#333b44]">
                                                     {item.recordNo}
-                                                    {item.date && <div className="text-[10px] text-slate-400 font-normal">{item.date}</div>}
+                                                    <div className="text-[10px] text-slate-400 font-normal">{item.date}</div>
                                                 </td>
                                                 <td className="p-3">
                                                     {item.photo ? (
-                                                        <div 
-                                                            className="relative w-12 h-12 cursor-pointer group"
-                                                            onClick={() => setEnlargedPhoto(item.photo)}
-                                                            title="Klik untuk perbesar"
-                                                        >
+                                                        <div className="relative w-11 h-11 cursor-pointer group" onClick={() => setEnlargedPhoto(item.photo)}>
                                                             <img src={item.photo} alt="Defect" className="w-full h-full object-cover rounded-lg border border-slate-300 shadow-sm transition group-hover:opacity-60" />
                                                             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                                                                <i className="fa-solid fa-expand text-slate-800 drop-shadow-md"></i>
+                                                                <i className="fa-solid fa-expand text-slate-800"></i>
                                                             </div>
                                                         </div>
                                                     ) : (
-                                                        <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 text-[10px] font-medium text-center p-1 leading-tight border border-slate-200">No Foto</div>
+                                                        <div className="w-11 h-11 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 text-[10px] border border-slate-200">No Foto</div>
                                                     )}
                                                 </td>
                                                 <td className="p-3 font-medium text-slate-800">
-                                                    {item.floor === 'L' ? 'Lobby (L)' : item.floor === '2' ? 'Lv.2' : item.floor === '3' ? 'Lv.3' : item.floor === '9' ? 'Lv.9' : `Lantai ${item.floor}`}
-                                                    <br /><span className="text-xs text-slate-500 font-normal">{item.room}</span>
+                                                    {item.floor === 'L' ? 'Lobby (L)' : `Lantai ${item.floor}`}
+                                                    <br /><span className="text-[11px] text-slate-500 font-normal">{item.room}</span>
                                                 </td>
                                                 <td className="p-3 text-slate-700">
                                                     <span className="font-semibold text-slate-900">{item.item}</span>
-                                                    <br /><span className="text-xs text-slate-500">{item.note || '-'}</span>
+                                                    <br /><span className="text-[11px] text-slate-500">{item.note || '-'}</span>
                                                 </td>
                                                 <td className="p-3 text-slate-600">
                                                     {item.name}
-                                                    <br /><span className="bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded text-[10px] font-bold">{item.dept}</span>
+                                                    <br /><span className="bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded text-[10px] font-bold">{item.dept}</span>
                                                 </td>
                                                 <td className="p-3">
                                                     <select 
@@ -809,9 +744,7 @@
                                                         <option value="Done Progress">Done Progress</option>
                                                         <option value="Resolved">Resolved</option>
                                                     </select>
-                                                    {item.picEng && (
-                                                        <div className="mt-1 text-[10px] text-blue-600 font-semibold bg-blue-50 px-1 py-0.5 rounded border border-blue-100 w-max">PIC: {item.picEng}</div>
-                                                    )}
+                                                    {item.picEng && <div className="mt-1 text-[9px] text-blue-600 font-semibold bg-blue-50 px-1 py-0.5 rounded border border-blue-100">PIC: {item.picEng}</div>}
                                                 </td>
                                                 <td className="p-3">
                                                     <select 
@@ -840,285 +773,185 @@
                         </div>
                     </main>
 
-                    {/* Modal Submit Report */}
+                    {/* MODAL 10 WORST ROOMS DENGAN SIMBOL ALERT */}
+                    {worstRoomModal && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+                                <div className="flex justify-between items-center mb-4 border-b pb-3">
+                                    <h3 className="font-bold text-base text-slate-800 flex items-center gap-2">
+                                        <i className="fa-solid fa-triangle-exclamation text-amber-500"></i> 10 Worst Rooms (Defect Terbanyak)
+                                    </h3>
+                                    <button onClick={() => setWorstRoomModal(false)} className="text-slate-400 hover:text-slate-600 font-bold cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
+                                </div>
+                                <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
+                                    {worstRoomsList.map((item, idx) => (
+                                        <div key={idx} className={`p-3 rounded-xl border flex items-center justify-between ${idx === 0 ? 'bg-red-50 border-red-300 shadow-sm' : idx < 3 ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200'}`}>
+                                            <div className="flex items-center gap-3">
+                                                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${idx === 0 ? 'bg-red-600 text-white' : idx < 3 ? 'bg-amber-500 text-white' : 'bg-slate-300 text-slate-700'}`}>
+                                                    {idx + 1}
+                                                </span>
+                                                <div>
+                                                    <p className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                                                        Room / Area: {item.room}
+                                                        {idx === 0 && <span className="bg-red-600 text-white text-[9px] px-1.5 py-0.5 rounded font-bold animate-pulse">CRITICAL ALERT</span>}
+                                                    </p>
+                                                    <p className="text-xs text-slate-500">Total Temuan Kerusakan</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${idx === 0 ? 'bg-red-600 text-white' : 'bg-slate-200 text-slate-800'}`}>
+                                                    {item.count} Laporan
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="mt-4 pt-3 border-t text-right">
+                                    <button onClick={() => setWorstRoomModal(false)} className="bg-[#333b44] hover:bg-[#22272e] text-white px-4 py-2 rounded-xl text-xs font-bold cursor-pointer">Tutup</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL LAINNYA (Submit Report, Ganti Password, AI Assist, Zoom Foto, Quick Update) */}
                     {isModalOpen && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                             <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
                                 <div className="flex justify-between items-center mb-4 border-b pb-3">
-                                    <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
-                                        <i className="fa-solid fa-circle-plus text-[#333b44]"></i> Submit Report Defect
-                                    </h3>
-                                    <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 font-bold cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
+                                    <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2"><i className="fa-solid fa-circle-plus text-[#333b44]"></i> Submit Report Defect</h3>
+                                    <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
                                 </div>
-                                
-                                <div className="bg-slate-100 border border-slate-300 px-4 py-2.5 rounded-lg mb-4 flex justify-between items-center shadow-sm">
-                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">No. Record Tiket Baru:</span>
-                                    <span className="font-mono text-xl font-bold text-[#333b44]">{nextFormattedRecordNo}</span>
+                                <div className="bg-slate-100 border border-slate-300 px-4 py-2.5 rounded-lg mb-4 flex justify-between items-center">
+                                    <span className="text-xs font-bold text-slate-500 uppercase">No. Tiket:</span>
+                                    <span className="font-mono text-lg font-bold text-[#333b44]">{nextFormattedRecordNo}</span>
                                 </div>
-
                                 <form onSubmit={handleSubmit} className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-2 gap-3">
                                         <div>
-                                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Pilih Lantai / Area</label>
-                                            <select value={formFloor} onChange={handleFloorChange} className="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none font-medium cursor-pointer">
-                                                {Array.from(new Set(locationMapping.map(loc => loc.floor))).map(f => (
-                                                    <option key={f} value={f}>{f === 'L' ? 'Lobby (L)' : `Lantai ${f}`}</option>
-                                                ))}
+                                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Lantai</label>
+                                            <select value={formFloor} onChange={handleFloorChange} className="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white cursor-pointer">
+                                                {Array.from(new Set(locationMapping.map(loc => loc.floor))).map(f => <option key={f} value={f}>{f === 'L' ? 'Lobby (L)' : `Lantai ${f}`}</option>)}
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Ruangan / Lokasi</label>
-                                            <select value={formRoom} onChange={(e) => setFormRoom(e.target.value)} className="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none font-medium cursor-pointer">
+                                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Ruangan</label>
+                                            <select value={formRoom} onChange={(e) => setFormRoom(e.target.value)} className="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white cursor-pointer">
                                                 {availableRooms.map((loc, idx) => <option key={idx} value={loc.room}>{loc.room}</option>)}
                                             </select>
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Kategori Kerusakan</label>
-                                        <select value={formItem} onChange={(e) => setFormItem(e.target.value)} className="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none cursor-pointer">
+                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Kategori</label>
+                                        <select value={formItem} onChange={(e) => setFormItem(e.target.value)} className="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white cursor-pointer">
                                             {itemList.map((item, idx) => <option key={idx} value={item}>{item}</option>)}
                                         </select>
                                     </div>
-                                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 grid grid-cols-2 gap-2 text-xs">
-                                        <div><span className="text-slate-500 block uppercase font-bold">Pelapor</span><span className="font-semibold text-slate-900">{currentUser.name}</span></div>
-                                        <div><span className="text-slate-500 block uppercase font-bold">Departemen</span><span className="font-semibold text-slate-900">{currentUser.dept}</span></div>
-                                    </div>
                                     <div>
                                         <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Detail Temuan</label>
-                                        <textarea rows="3" value={formNote} onChange={(e) => setFormNote(e.target.value)} placeholder="Jelaskan detail kerusakan..." required className="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-slate-500"></textarea>
+                                        <textarea rows="3" value={formNote} onChange={(e) => setFormNote(e.target.value)} placeholder="Jelaskan detail kerusakan..." required className="w-full p-2 border border-slate-300 rounded-lg text-xs focus:outline-none"></textarea>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Lampirkan Foto</label>
-                                        <div className="flex items-center space-x-3">
-                                            <label className="cursor-pointer bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition">
-                                                <i className="fa-solid fa-camera"></i><span>Pilih Foto</span>
-                                                <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
-                                            </label>
-                                            <span className="text-xs text-slate-500">{formPhoto ? 'Foto siap dilampirkan ✓' : 'Belum ada foto'}</span>
-                                        </div>
-                                        {formPhoto && <div className="mt-2"><img src={formPhoto} alt="Preview" className="w-20 h-20 object-cover rounded-lg border border-slate-300 shadow-sm" /></div>}
+                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Foto</label>
+                                        <input type="file" accept="image/*" onChange={handlePhotoUpload} className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer" />
+                                        {formPhoto && <img src={formPhoto} alt="Preview" className="w-16 h-16 object-cover rounded-lg border mt-2" />}
                                     </div>
                                     <div className="flex justify-end space-x-2 pt-2 border-t">
-                                        <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 cursor-pointer">Batal</button>
-                                        <button type="submit" className="px-4 py-2 bg-[#333b44] hover:bg-[#22272e] text-white rounded-lg text-sm font-medium shadow-sm transition cursor-pointer">Kirim Report</button>
+                                        <button type="button" onClick={() => setIsModalOpen(false)} className="px-3 py-1.5 border rounded-lg text-xs cursor-pointer">Batal</button>
+                                        <button type="submit" className="px-3 py-1.5 bg-[#333b44] text-white rounded-lg text-xs cursor-pointer">Kirim Report</button>
                                     </div>
                                 </form>
                             </div>
                         </div>
                     )}
 
-                    {/* Modal Ganti Password */}
                     {changePassOpen && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                             <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
                                 <div className="flex justify-between items-center mb-4 border-b pb-3">
-                                    <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
-                                        <i className="fa-solid fa-key text-amber-600"></i> Ganti Password Akun
-                                    </h3>
-                                    <button onClick={() => { setChangePassOpen(false); setPassMsg({text: '', type: ''}); }} className="text-slate-400 hover:text-slate-600 font-bold cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
+                                    <h3 className="font-bold text-base text-slate-800 flex items-center gap-2"><i className="fa-solid fa-key text-amber-600"></i> Ganti Password</h3>
+                                    <button onClick={() => { setChangePassOpen(false); setPassMsg({text: '', type: ''}); }} className="text-slate-400 hover:text-slate-600 cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
                                 </div>
-
-                                {passMsg.text && (
-                                    <div className={`p-3 rounded-lg text-xs mb-4 ${passMsg.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`}>
-                                        {passMsg.text}
-                                    </div>
-                                )}
-
-                                <form onSubmit={handleChangePasswordSubmit} className="space-y-4">
+                                {passMsg.text && <div className={`p-2.5 rounded-lg text-xs mb-3 ${passMsg.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`}>{passMsg.text}</div>}
+                                <form onSubmit={handleChangePasswordSubmit} className="space-y-3">
                                     <div>
                                         <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Password Lama</label>
-                                        <div className="relative">
-                                            <input 
-                                                type={showOldPass ? "text" : "password"} 
-                                                value={oldPassInput} 
-                                                onChange={(e) => setOldPassInput(e.target.value)} 
-                                                placeholder="Masukkan password saat ini" 
-                                                required
-                                                className="w-full p-2.5 pr-10 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-slate-500"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowOldPass(!showOldPass)}
-                                                className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
-                                            >
-                                                <i className={`fa-solid ${showOldPass ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-                                            </button>
-                                        </div>
+                                        <input type={showOldPass ? "text" : "password"} value={oldPassInput} onChange={(e) => setOldPassInput(e.target.value)} required className="w-full p-2 border rounded-lg text-xs" />
                                     </div>
-
                                     <div>
                                         <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Password Baru</label>
-                                        <div className="relative">
-                                            <input 
-                                                type={showNewPass ? "text" : "password"} 
-                                                value={newPassInput} 
-                                                onChange={(e) => setNewPassInput(e.target.value)} 
-                                                placeholder="Minimal 6 karakter" 
-                                                required
-                                                className="w-full p-2.5 pr-10 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-slate-500"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowNewPass(!showNewPass)}
-                                                className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
-                                            >
-                                                <i className={`fa-solid ${showNewPass ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-                                            </button>
-                                        </div>
+                                        <input type={showNewPass ? "text" : "password"} value={newPassInput} onChange={(e) => setNewPassInput(e.target.value)} required className="w-full p-2 border rounded-lg text-xs" />
                                     </div>
-
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Konfirmasi Password Baru</label>
-                                        <div className="relative">
-                                            <input 
-                                                type={showConfirmPass ? "text" : "password"} 
-                                                value={confirmPassInput} 
-                                                onChange={(e) => setConfirmPassInput(e.target.value)} 
-                                                placeholder="Ulangi password baru" 
-                                                required
-                                                className="w-full p-2.5 pr-10 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-slate-500"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowConfirmPass(!showConfirmPass)}
-                                                className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
-                                            >
-                                                <i className={`fa-solid ${showConfirmPass ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-                                            </button>
-                                        </div>
+                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Konfirmasi Password</label>
+                                        <input type={showConfirmPass ? "text" : "password"} value={confirmPassInput} onChange={(e) => setConfirmPassInput(e.target.value)} required className="w-full p-2 border rounded-lg text-xs" />
                                     </div>
-
                                     <div className="flex justify-end space-x-2 pt-2 border-t">
-                                        <button 
-                                            type="button" 
-                                            onClick={() => { setChangePassOpen(false); setPassMsg({text: '', type: ''}); }} 
-                                            className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 cursor-pointer"
-                                        >
-                                            Batal
-                                        </button>
-                                        <button 
-                                            type="submit" 
-                                            className="px-4 py-2 bg-[#333b44] hover:bg-[#22272e] text-white rounded-lg text-sm font-medium shadow-sm transition cursor-pointer"
-                                        >
-                                            Simpan Password
-                                        </button>
+                                        <button type="button" onClick={() => setChangePassOpen(false)} className="px-3 py-1.5 border rounded-lg text-xs cursor-pointer">Batal</button>
+                                        <button type="submit" className="px-3 py-1.5 bg-[#333b44] text-white rounded-lg text-xs cursor-pointer">Simpan</button>
                                     </div>
                                 </form>
                             </div>
                         </div>
                     )}
 
-                    {/* Modal AI Assist */}
                     {aiModalOpen && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                             <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
                                 <div className="flex justify-between items-center mb-4 border-b pb-3">
-                                    <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
-                                        <i className="fa-solid fa-wand-magic-sparkles text-amber-600"></i> Erian AI Assistant
-                                    </h3>
-                                    <button onClick={() => setAiModalOpen(false)} className="text-slate-400 hover:text-slate-600 font-bold cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
+                                    <h3 className="font-bold text-base text-slate-800 flex items-center gap-2"><i className="fa-solid fa-wand-magic-sparkles text-amber-600"></i> AI Assistant</h3>
+                                    <button onClick={() => setAiModalOpen(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
                                 </div>
                                 {isAnalyzing ? (
-                                    <div className="py-10 text-center space-y-3">
-                                        <div className="w-8 h-8 border-4 border-slate-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                                        <p className="text-sm text-slate-600 font-medium">Menganalisis spesifik temuan kerusakan...</p>
-                                    </div>
+                                    <div className="py-8 text-center space-y-2"><div className="w-6 h-6 border-3 border-slate-600 border-t-transparent rounded-full animate-spin mx-auto"></div><p className="text-xs text-slate-600">Menganalisis temuan...</p></div>
                                 ) : (
-                                    <div className="space-y-4">
-                                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-sm text-slate-800 whitespace-pre-line leading-relaxed font-sans">{aiAnalysisResult}</div>
-                                        <button onClick={() => setAiModalOpen(false)} className="w-full bg-[#333b44] hover:bg-[#22272e] text-white py-2 rounded-lg text-sm font-medium transition shadow-sm cursor-pointer">Tutup</button>
+                                    <div className="space-y-3">
+                                        <div className="bg-slate-50 p-3 rounded-xl border text-xs text-slate-800 whitespace-pre-line leading-relaxed">{aiAnalysisResult}</div>
+                                        <button onClick={() => setAiModalOpen(false)} className="w-full bg-[#333b44] text-white py-2 rounded-lg text-xs font-medium cursor-pointer">Tutup</button>
                                     </div>
                                 )}
                             </div>
                         </div>
                     )}
 
-                    {/* Modal Zoom Foto */}
                     {enlargedPhoto && (
                         <div className="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center z-[60] p-4" onClick={() => setEnlargedPhoto(null)}>
-                            <div className="relative max-w-5xl max-h-[90vh] flex flex-col items-center animate-in fade-in zoom-in duration-200">
-                                <button className="absolute -top-12 right-0 text-white hover:text-slate-300 font-bold flex items-center gap-2 bg-slate-800/60 px-4 py-2 rounded-full transition cursor-pointer" onClick={() => setEnlargedPhoto(null)}>
-                                    <i className="fa-solid fa-xmark"></i> Tutup Foto
-                                </button>
-                                <img src={enlargedPhoto} alt="Enlarged Defect" className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl border-2 border-slate-500 bg-white" onClick={(e) => e.stopPropagation()} />
+                            <div className="relative max-w-4xl max-h-[90vh]">
+                                <button className="absolute -top-10 right-0 text-white bg-slate-800/80 px-3 py-1.5 rounded-full text-xs" onClick={() => setEnlargedPhoto(null)}>Tutup ✕</button>
+                                <img src={enlargedPhoto} alt="Enlarged" className="max-w-full max-h-[80vh] object-contain rounded-xl border-2 border-slate-500 bg-white" onClick={(e) => e.stopPropagation()} />
                             </div>
                         </div>
                     )}
 
-                    {/* Modal Quick Update Ticket */}
                     {quickUpdateOpen && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                             <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
                                 <div className="flex justify-between items-center mb-4 border-b pb-3">
-                                    <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
-                                        <i className={`fa-solid fa-circle-check ${currentUser.dept === 'Eng' ? 'text-blue-600' : 'text-emerald-600'}`}></i> 
-                                        Update Defect (Berdasarkan No. Tiket)
-                                    </h3>
-                                    <button onClick={() => {setQuickUpdateOpen(false); setQuickTicketId('');}} className="text-slate-400 hover:text-slate-600 font-bold cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
+                                    <h3 className="font-bold text-base text-slate-800">Update Defect (No. Tiket)</h3>
+                                    <button onClick={() => setQuickUpdateOpen(false)} className="text-slate-400 cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
                                 </div>
-                                
-                                <form onSubmit={handleQuickUpdateSubmit} className="space-y-4">
+                                <form onSubmit={handleQuickUpdateSubmit} className="space-y-3">
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">
-                                            Pilih Nomor Tiket (No. Record)
-                                        </label>
-                                        <select 
-                                            value={quickTicketId} 
-                                            onChange={handleQuickTicketChange} 
-                                            className="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:border-slate-500 font-medium cursor-pointer"
-                                            required
-                                        >
-                                            <option value="">-- Silakan Pilih Tiket --</option>
-                                            {defects
-                                                .filter(d => currentUser.dept === 'Eng' ? d.statusEng !== 'Resolved' : d.checkHK !== 'Verified')
-                                                .map(d => (
-                                                <option key={d.id} value={d.id}>{d.recordNo} - {d.item} ({d.room})</option>
-                                            ))}
+                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Pilih No. Tiket</label>
+                                        <select value={quickTicketId} onChange={handleQuickTicketChange} className="w-full p-2 border rounded-lg text-xs bg-white cursor-pointer" required>
+                                            <option value="">-- Pilih Tiket --</option>
+                                            {defects.map(d => <option key={d.id} value={d.id}>{d.recordNo} - {d.item} ({d.room})</option>)}
                                         </select>
                                     </div>
-
-                                    {quickTicketId && defects.find(d => d.id === quickTicketId) && (
-                                        <div className="bg-slate-100 border border-slate-300 px-4 py-3 rounded-lg shadow-sm">
-                                            <div className="text-sm text-slate-700 space-y-1">
-                                                <p><span className="font-semibold text-slate-900">Pelapor:</span> {defects.find(d => d.id === quickTicketId).name}</p>
-                                                <p><span className="font-semibold text-slate-900">Lokasi:</span> {defects.find(d => d.id === quickTicketId).floor === 'L' ? 'Lobby' : `Lantai ${defects.find(d => d.id === quickTicketId).floor}`} - {defects.find(d => d.id === quickTicketId).room}</p>
-                                                <p><span className="font-semibold text-slate-900">Catatan:</span> {defects.find(d => d.id === quickTicketId).note || '-'}</p>
-                                            </div>
-                                        </div>
-                                    )}
-
                                     {quickTicketId && (
                                         <div>
-                                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">
-                                                Update {currentUser.dept === 'Eng' ? 'Status Defect (Eng)' : 'Verifikasi Kebersihan (HK)'}
-                                            </label>
-                                            <select 
-                                                value={updateValue} 
-                                                onChange={(e) => setUpdateValue(e.target.value)} 
-                                                className={`w-full p-2.5 border rounded-lg text-sm bg-white focus:outline-none font-medium cursor-pointer ${currentUser.dept === 'Eng' ? 'border-blue-300 focus:border-blue-500' : 'border-emerald-300 focus:border-emerald-500'}`}
-                                            >
+                                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Status Baru</label>
+                                            <select value={updateValue} onChange={(e) => setUpdateValue(e.target.value)} className="w-full p-2 border rounded-lg text-xs bg-white cursor-pointer">
                                                 {currentUser.dept === 'Eng' ? (
-                                                    <>
-                                                        <option value="Open">Open</option>
-                                                        <option value="Done Progress">Done Progress</option>
-                                                        <option value="Resolved">Resolved</option>
-                                                    </>
+                                                    <><option value="Open">Open</option><option value="Done Progress">Done Progress</option><option value="Resolved">Resolved</option></>
                                                 ) : (
-                                                    <>
-                                                        <option value="Pending">Pending Check</option>
-                                                        <option value="Not Completed">Not Completed</option>
-                                                        <option value="Verified">Verified Clean</option>
-                                                    </>
+                                                    <><option value="Pending">Pending</option><option value="Not Completed">Not Completed</option><option value="Verified">Verified</option></>
                                                 )}
                                             </select>
                                         </div>
                                     )}
-                                    
-                                    <div className="flex justify-end space-x-2 pt-4 border-t">
-                                        <button type="button" onClick={() => {setQuickUpdateOpen(false); setQuickTicketId('');}} className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 cursor-pointer">Batal</button>
-                                        <button type="submit" disabled={!quickTicketId} className={`px-4 py-2 text-white rounded-lg text-sm font-medium shadow-sm transition ${!quickTicketId ? 'bg-slate-400 cursor-not-allowed' : currentUser.dept === 'Eng' ? 'bg-blue-600 hover:bg-blue-700 cursor-pointer' : 'bg-emerald-600 hover:bg-emerald-700 cursor-pointer'}`}>
-                                            Simpan Update
-                                        </button>
+                                    <div className="flex justify-end space-x-2 pt-2 border-t">
+                                        <button type="button" onClick={() => setQuickUpdateOpen(false)} className="px-3 py-1.5 border rounded-lg text-xs cursor-pointer">Batal</button>
+                                        <button type="submit" disabled={!quickTicketId} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs cursor-pointer">Simpan</button>
                                     </div>
                                 </form>
                             </div>
