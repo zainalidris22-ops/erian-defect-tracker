@@ -223,11 +223,7 @@
             const [endDate, setEndDate] = useState('');
             const [activeFilterCard, setActiveFilterCard] = useState('Total');
 
-            const [quickUpdateOpen, setQuickUpdateOpen] = useState(false);
-            const [quickTicketId, setQuickTicketId] = useState('');
-            const [updateValue, setUpdateValue] = useState('');
             const [enlargedPhoto, setEnlargedPhoto] = useState(null);
-
             const [aiModalOpen, setAiModalOpen] = useState(false);
             const [aiAnalysisResult, setAiAnalysisResult] = useState('');
             const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -370,26 +366,6 @@
                 }));
             };
 
-            const handleQuickTicketChange = (e) => {
-                const tId = Number(e.target.value);
-                setQuickTicketId(tId);
-                if (tId) {
-                    const def = defects.find(d => d.id === tId);
-                    if (def) setUpdateValue(currentUser.dept === 'Eng' ? def.statusEng : def.checkHK);
-                }
-            };
-
-            const handleQuickUpdateSubmit = (e) => {
-                e.preventDefault();
-                const def = defects.find(d => d.id === quickTicketId);
-                if (def) {
-                    if (currentUser.dept === 'Eng') updateEngStatus(def.id, updateValue);
-                    else if (currentUser.dept === 'HK') updateHkStatus(def.id, updateValue);
-                }
-                setQuickUpdateOpen(false);
-                setQuickTicketId('');
-            };
-
             const runAiAnalysis = (defect) => {
                 setAiModalOpen(true);
                 setIsAnalyzing(true);
@@ -469,9 +445,9 @@
                 }
 
                 return matchSearch && matchStatus && matchFloor && matchDate && matchCard;
-            }).sort((a, b) => a.id - b.id); // URUTAN KECIL KE BESAR
+            }).sort((a, b) => a.id - b.id); // URUTAN KECIL KE BESAR (No 7 ke 85)
 
-            // Pagination Logic (20 items per page)
+            // Pagination Logic: 20 items per page
             const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
             const paginatedData = useMemo(() => {
                 const start = (currentPage - 1) * itemsPerPage;
@@ -544,7 +520,7 @@
             return (
                 <div className="min-h-screen bg-[#cbd5e1] text-slate-800 font-sans pb-10">
                     
-                    {/* Header Mobile Optimized */}
+                    {/* Header */}
                     <header className="bg-[#333b44] text-white shadow-md sticky top-0 z-40 border-b border-[#47515e]">
                         <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-2">
                             <div className="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
@@ -590,7 +566,7 @@
                         </div>
                     </header>
 
-                    {/* Banner Mobile Clean */}
+                    {/* Banner */}
                     <div className="max-w-7xl mx-auto px-4 pt-4 pb-2">
                         <div className="bg-[#2a3038] border border-slate-500 p-5 rounded-2xl shadow-lg flex flex-col sm:flex-row justify-between items-center gap-4">
                             <div className="text-center sm:text-left">
@@ -598,13 +574,6 @@
                                 <p className="text-xs sm:text-sm text-slate-300 font-medium">Sistem Monitoring & Pelaporan Kerusakan Fasilitas</p>
                             </div>
                             <div className="flex flex-wrap gap-2 justify-center w-full sm:w-auto">
-                                {/* STRICT ROLE CHECK: Tombol Update Defect HANYA untuk Eng dan HK */}
-                                {(currentUser.dept === 'Eng' || currentUser.dept === 'HK') && (
-                                    <button onClick={() => setQuickUpdateOpen(true)} className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-1.5 shadow transition cursor-pointer">
-                                        <i className="fa-solid fa-circle-check"></i>
-                                        <span>Update Defect</span>
-                                    </button>
-                                )}
                                 <button onClick={() => setIsModalOpen(true)} className="flex-1 sm:flex-none bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-1.5 shadow transition cursor-pointer">
                                     <i className="fa-solid fa-circle-plus"></i>
                                     <span>Submit Report</span>
@@ -614,7 +583,7 @@
                     </div>
 
                     <main className="max-w-7xl mx-auto px-4 py-2">
-                        {/* Statistics Cards Mobile Grid */}
+                        {/* Statistics Cards */}
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
                             <div onClick={() => {setActiveFilterCard('Total'); setCurrentPage(1);}} className={`p-3.5 rounded-xl shadow border cursor-pointer transition-all ${activeFilterCard === 'Total' ? 'bg-white border-red-600 ring-2 ring-red-300' : 'bg-white border-slate-200 hover:bg-red-50'}`}>
                                 <div className="flex justify-between items-start">
@@ -742,6 +711,7 @@
                                                     <br /><span className="bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded text-[10px] font-bold">{item.dept}</span>
                                                 </td>
                                                 <td className="p-3">
+                                                    {/* HAK AKSES KETAT: Akun FO/selain Eng & HK dibuat disabled total */}
                                                     <select 
                                                         value={item.statusEng} 
                                                         onChange={(e) => updateEngStatus(item.id, e.target.value)}
@@ -847,7 +817,7 @@
                         </div>
                     )}
 
-                    {/* MODAL LAINNYA */}
+                    {/* MODAL SUBMIT REPORT */}
                     {isModalOpen && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                             <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
@@ -898,6 +868,7 @@
                         </div>
                     )}
 
+                    {/* MODAL GANTI PASSWORD */}
                     {changePassOpen && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                             <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
@@ -928,6 +899,7 @@
                         </div>
                     )}
 
+                    {/* MODAL AI ASSISTANT */}
                     {aiModalOpen && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                             <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
@@ -947,47 +919,12 @@
                         </div>
                     )}
 
+                    {/* ZOOM FOTO */}
                     {enlargedPhoto && (
                         <div className="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center z-[60] p-4" onClick={() => setEnlargedPhoto(null)}>
                             <div className="relative max-w-4xl max-h-[90vh]">
                                 <button className="absolute -top-10 right-0 text-white bg-slate-800/80 px-3 py-1.5 rounded-full text-xs" onClick={() => setEnlargedPhoto(null)}>Tutup ✕</button>
                                 <img src={enlargedPhoto} alt="Enlarged" className="max-w-full max-h-[80vh] object-contain rounded-xl border-2 border-slate-500 bg-white" onClick={(e) => e.stopPropagation()} />
-                            </div>
-                        </div>
-                    )}
-
-                    {quickUpdateOpen && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
-                                <div className="flex justify-between items-center mb-4 border-b pb-3">
-                                    <h3 className="font-bold text-base text-slate-800">Update Defect (No. Tiket)</h3>
-                                    <button onClick={() => setQuickUpdateOpen(false)} className="text-slate-400 cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
-                                </div>
-                                <form onSubmit={handleQuickUpdateSubmit} className="space-y-3">
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Pilih No. Tiket</label>
-                                        <select value={quickTicketId} onChange={handleQuickTicketChange} className="w-full p-2 border rounded-lg text-xs bg-white cursor-pointer" required>
-                                            <option value="">-- Pilih Tiket --</option>
-                                            {defects.map(d => <option key={d.id} value={d.id}>{d.recordNo} - {d.item} ({d.room})</option>)}
-                                        </select>
-                                    </div>
-                                    {quickTicketId && (
-                                        <div>
-                                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Status Baru</label>
-                                            <select value={updateValue} onChange={(e) => setUpdateValue(e.target.value)} className="w-full p-2 border rounded-lg text-xs bg-white cursor-pointer">
-                                                {currentUser.dept === 'Eng' ? (
-                                                    <><option value="Open">Open</option><option value="Done Progress">Done Progress</option><option value="Resolved">Resolved</option></>
-                                                ) : (
-                                                    <><option value="Pending">Pending</option><option value="Not Completed">Not Completed</option><option value="Verified">Verified</option></>
-                                                )}
-                                            </select>
-                                        </div>
-                                    )}
-                                    <div className="flex justify-end space-x-2 pt-2 border-t">
-                                        <button type="button" onClick={() => setQuickUpdateOpen(false)} className="px-3 py-1.5 border rounded-lg text-xs cursor-pointer">Batal</button>
-                                        <button type="submit" disabled={!quickTicketId} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs cursor-pointer">Simpan</button>
-                                    </div>
-                                </form>
                             </div>
                         </div>
                     )}
