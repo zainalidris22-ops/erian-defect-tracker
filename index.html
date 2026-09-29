@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="dark">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,850 +7,1128 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: { 50: '#fffbeb', 100: '#fef3c7', 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706', 700: '#b45309' },
-                        dark: { bg: '#1e2124', card: '#282b30', border: '#36393f' }
-                    },
-                    fontFamily: { sans: ['Inter', 'sans-serif'] }
-                }
-            }
-        }
-    </script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
-        .gold-gradient { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #d97706 100%); }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #1e2124; }
-        ::-webkit-scrollbar-thumb { background: #4f545c; border-radius: 3px; }
+        body { font-family: 'Inter', sans-serif; background-color: #cbd5e1; }
     </style>
 </head>
-<body class="bg-dark-bg text-slate-100 min-h-screen font-sans antialiased selection:bg-brand-500 selection:text-slate-950">
+<body class="bg-[#cbd5e1] text-slate-800 antialiased">
+    <div id="root"></div>
 
-    <!-- Halaman Login -->
-    <div id="loginScreen" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4">
-        <div class="bg-dark-card border border-dark-border rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6">
-            <div class="text-center space-y-2">
-                <div class="w-16 h-16 bg-[#333b44] border border-slate-600 rounded-2xl mx-auto flex items-center justify-center text-slate-200 text-2xl shadow-inner">
-                    <i class="fas fa-building"></i>
-                </div>
-                <h1 class="text-xl font-bold text-white uppercase tracking-wider">Erian Defect Tracker</h1>
-                <p class="text-xs text-slate-400">Masukkan Email dan Password resmi Anda untuk masuk.</p>
-            </div>
-            
-            <div id="authErrorMsg" class="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-xs flex items-center gap-2 hidden">
-                <i class="fas fa-exclamation-circle shrink-0"></i>
-                <span id="authErrorText">Email atau password salah.</span>
-            </div>
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
 
-            <form onsubmit="handleLogin(event)" class="space-y-4 text-left">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Email HOD / Staff</label>
-                    <div class="relative">
-                        <i class="fas fa-envelope text-slate-500 absolute left-3.5 top-3.5 text-sm"></i>
-                        <input type="email" id="authEmailInput" placeholder="contoh: zainalidris22@gmail.com" required class="w-full bg-[#1e2124] border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Password</label>
-                    <div class="relative">
-                        <i class="fas fa-lock text-slate-500 absolute left-3.5 top-3.5 text-sm"></i>
-                        <input type="password" id="authPasswordInput" placeholder="Masukkan password" required class="w-full bg-[#1e2124] border border-slate-700 rounded-xl pl-10 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
-                        <button type="button" onclick="toggleLoginPass()" class="absolute right-3.5 top-3 text-slate-500 hover:text-slate-300">
-                            <i id="eyeIcon" class="fas fa-eye text-sm"></i>
-                        </button>
-                    </div>
-                </div>
-                <button type="submit" class="w-full bg-[#333b44] hover:bg-[#22272e] text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition border border-slate-600">
-                    <i class="fas fa-sign-in-alt"></i>
-                    <span>Masuk Aplikasi</span>
-                </button>
-            </form>
+        function App() {
+            const initialUserList = [
+                { email: "zainalidris22@gmail.com", pass: "zainal123", name: "Zainal (Asst. FOM)", dept: "FO" },
+                { email: "ameliatanuwidjaja@gmail.com", pass: "amel123", name: "Amel (Accounting Spv)", dept: "CA" },
+                { email: "aswansumarno@gmail.com", pass: "asep123", name: "Asep (FBM)", dept: "FBS" },
+                { email: "dv.bule81@gmail.com", pass: "devy123", name: "Devy (Owner Rep)", dept: "GA" },
+                { email: "indra.fraja@gmail.com", pass: "indra123", name: "Indra (Head Chef)", dept: "FBP" },
+                { email: "rdarst0907@gmail.com", pass: "resti123", name: "Resti (DOSM)", dept: "Sales" },
+                { email: "SarasAndini89@gmail.com", pass: "saras123", name: "Saras (HK SPV)", dept: "HK" },
+                { email: "budihartanto23@gmail.com", pass: "budi123", name: "Budi (Eng SPV)", dept: "Eng" },
+                { email: "rachmatIT23@gmail.com", pass: "rachmat123", name: "Rachmat (ITM)", dept: "IT" },
+                { email: "pipit.sopandian@gmail.com", pass: "pipit123", name: "Pipit (SM)", dept: "Sales" },
+                { email: "septianyuda47@gmail.com", pass: "septian123", name: "Septian (Asst.Bqt Manager)", dept: "FBS" }
+            ];
 
-            <div class="text-left bg-[#1e2124] p-3 rounded-xl border border-slate-800 text-[11px] text-slate-400 space-y-1">
-                <p class="font-bold text-slate-300">Contoh Akun Akses:</p>
-                <p>• FO: zainalidris22@gmail.com / pass: zainal123</p>
-                <p>• HK: SarasAndini89@gmail.com / pass: saras123</p>
-                <p>• Eng: budihartanto23@gmail.com / pass: budi123</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Header Utama -->
-    <header class="bg-[#1e2124]/90 backdrop-blur-md border-b border-dark-border sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <div class="bg-[#212428] border border-slate-700/60 px-4 py-2 rounded-2xl flex items-center justify-center shadow-inner min-w-[150px] h-12">
-                    <span class="font-bold tracking-wider text-white text-sm">ERIAN HOTEL</span>
-                </div>
-                <div>
-                    <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-                        ERIAN DEFECT FIND OUT
-                        <span class="bg-[#333b44] text-slate-300 text-[10px] px-2.5 py-0.5 rounded-full border border-slate-600">EPF System</span>
-                    </h1>
-                    <p class="text-xs text-slate-400" id="userInfoHeader">Logged in as: -</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <button onclick="openChangePassModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2">
-                    <i class="fas fa-key text-amber-400"></i>
-                    <span class="hidden md:inline">Ganti Password</span>
-                </button>
-                <button onclick="handleLogout()" class="bg-red-600/80 hover:bg-red-600 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        <!-- Banner -->
-        <div class="bg-[#282b30] border border-slate-700/80 p-6 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="text-center sm:text-left">
-                <h2 class="font-bold text-white text-2xl tracking-wide">ERIAN HOTEL</h2>
-                <p class="text-sm text-slate-400 mt-1">Sistem Pelaporan dan Monitoring Kerusakan Fasilitas (Defect Tracker)</p>
-            </div>
-            <div class="flex flex-wrap gap-3 justify-center">
-                <button onclick="openQuickUpdateModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg transition">
-                    <i class="fas fa-check-circle"></i>
-                    <span>Update Defect</span>
-                </button>
-                <button id="submitReportBtn" onclick="openAddModal()" class="gold-gradient text-slate-950 px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg hover:opacity-90 transition">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>Submit Report</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Statistik Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div onclick="filterCardClick('Total')" class="bg-gradient-to-br from-slate-900 to-[#282b30] border border-red-500/30 rounded-2xl p-6 shadow-xl flex items-center justify-between cursor-pointer hover:border-red-500 transition-all">
-                <div>
-                    <span class="text-xs font-semibold uppercase tracking-wider text-red-400">Total Finding</span>
-                    <div class="flex items-baseline gap-2 mt-4">
-                        <span id="statTotal" class="text-3xl font-bold text-white">0</span>
-                        <span class="text-xs text-slate-400">laporan</span>
-                    </div>
-                </div>
-                <div class="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 text-xl">
-                    <i class="fas fa-clipboard-list"></i>
-                </div>
-            </div>
-
-            <div onclick="filterCardClick('Open')" class="bg-gradient-to-br from-slate-900 to-[#282b30] border border-amber-500/30 rounded-2xl p-6 shadow-xl flex items-center justify-between cursor-pointer hover:border-amber-500 transition-all">
-                <div>
-                    <span class="text-xs font-semibold uppercase tracking-wider text-amber-400">Open / Pending</span>
-                    <div class="flex items-baseline gap-2 mt-4">
-                        <span id="statOpen" class="text-3xl font-bold text-amber-400">0</span>
-                        <span class="text-xs text-slate-400">pending</span>
-                    </div>
-                </div>
-                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-xl">
-                    <i class="fas fa-clock"></i>
-                </div>
-            </div>
-
-            <div onclick="filterCardClick('Done')" class="bg-gradient-to-br from-slate-900 to-[#282b30] border border-blue-500/30 rounded-2xl p-6 shadow-xl flex items-center justify-between cursor-pointer hover:border-blue-500 transition-all">
-                <div>
-                    <span class="text-xs font-semibold uppercase tracking-wider text-blue-400">Done Progress (Eng)</span>
-                    <div class="flex items-baseline gap-2 mt-4">
-                        <span id="statDone" class="text-3xl font-bold text-blue-400">0</span>
-                        <span class="text-xs text-slate-400">dikerjakan</span>
-                    </div>
-                </div>
-                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-xl">
-                    <i class="fas fa-tools"></i>
-                </div>
-            </div>
-
-            <div onclick="filterCardClick('Verified')" class="bg-gradient-to-br from-slate-900 to-[#282b30] border border-emerald-500/30 rounded-2xl p-6 shadow-xl flex items-center justify-between cursor-pointer hover:border-emerald-500 transition-all">
-                <div>
-                    <span class="text-xs font-semibold uppercase tracking-wider text-emerald-400">Verified Clean (HK)</span>
-                    <div class="flex items-baseline gap-2 mt-4">
-                        <span id="statVerified" class="text-3xl font-bold text-emerald-400">0</span>
-                        <span class="text-xs text-slate-400">verified</span>
-                    </div>
-                </div>
-                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-xl">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-            </div>
-        </div>
-
-        <!-- Filter & Search Section -->
-        <div class="bg-dark-card/90 border border-dark-border rounded-3xl shadow-2xl p-6 space-y-4">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                    <div class="relative flex-1 md:w-72">
-                        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                        <input type="text" id="searchInput" oninput="renderTable()" placeholder="Cari ruang, item, atau pelapor..." class="w-full bg-[#1e2124] border border-slate-700/60 rounded-xl pl-11 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
-                    </div>
-
-                    <select id="statusFilter" onchange="renderTable()" class="bg-[#1e2124] border border-slate-700/60 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
-                        <option value="">Semua Status</option>
-                        <option value="Open">Open</option>
-                        <option value="Done Progress">Done Progress</option>
-                        <option value="Resolved">Resolved</option>
-                    </select>
-
-                    <select id="floorFilter" onchange="renderTable()" class="bg-[#1e2124] border border-slate-700/60 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
-                        <option value="">Semua Area</option>
-                        <option value="L">Lobby (L)</option>
-                        <option value="2">Lantai 2</option>
-                        <option value="3">Lantai 3</option>
-                        <option value="4">Lantai 4</option>
-                        <option value="5">Lantai 5</option>
-                        <option value="6">Lantai 6</option>
-                        <option value="7">Lantai 7</option>
-                        <option value="8">Lantai 8</option>
-                        <option value="9">Lantai 9</option>
-                    </select>
-                </div>
-
-                <button onclick="exportToExcel()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition">
-                    <i class="fas fa-file-excel"></i>
-                    <span>Export Report (Excel)</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Tabel Data -->
-        <div class="bg-dark-card/90 border border-dark-border rounded-3xl shadow-2xl overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-sm">
-                    <thead>
-                        <tr class="bg-[#1e2124] text-slate-400 text-[11px] uppercase tracking-wider border-b border-dark-border">
-                            <th class="px-6 py-4">No. Record</th>
-                            <th class="px-6 py-4">Foto</th>
-                            <th class="px-6 py-4">Floor / Area</th>
-                            <th class="px-6 py-4">Item Kerusakan</th>
-                            <th class="px-6 py-4">Pelapor (HOD)</th>
-                            <th class="px-6 py-4 text-center">Status (Eng)</th>
-                            <th class="px-6 py-4 text-center">Check (HK)</th>
-                            <th class="px-6 py-4 text-center">AI Assist</th>
-                        </tr>
-                    </thead>
-                    <tbody id="defectTableBody" class="divide-y divide-dark-border/60 text-sm"></tbody>
-                </table>
-            </div>
-        </div>
-    </main>
-
-    <!-- Modal Add Report -->
-    <div id="addModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-dark-card border border-dark-border rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div class="flex items-center justify-between pb-3 border-b border-dark-border">
-                <h3 class="text-base font-bold text-white flex items-center gap-2">
-                    <i class="fas fa-plus-circle text-brand-400"></i> Submit Report Defect
-                </h3>
-                <button onclick="closeAddModal()" class="text-slate-400 hover:text-white"><i class="fas fa-times text-lg"></i></button>
-            </div>
-            
-            <div class="bg-[#1e2124] p-3 rounded-2xl border border-slate-800 flex justify-between items-center text-xs">
-                <span class="font-bold text-slate-400 uppercase">No. Record Tiket Baru:</span>
-                <span id="newRecordNoDisplay" class="font-mono text-base font-bold text-brand-400">EPF-000086</span>
-            </div>
-
-            <form onsubmit="handleFormSubmit(event)" class="space-y-3 text-sm">
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-xs text-slate-400 block mb-1">Pilih Lantai / Area</label>
-                        <select id="formFloor" onchange="onFloorSelectChange()" class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-brand-500">
-                            <option value="L">Lobby (L)</option>
-                            <option value="2">Lantai 2</option>
-                            <option value="3">Lantai 3</option>
-                            <option value="4">Lantai 4</option>
-                            <option value="5">Lantai 5</option>
-                            <option value="6">Lantai 6</option>
-                            <option value="7">Lantai 7</option>
-                            <option value="8">Lantai 8</option>
-                            <option value="9">Lantai 9</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs text-slate-400 block mb-1">Ruangan / Lokasi</label>
-                        <select id="formRoom" class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-brand-500"></select>
-                    </div>
-                </div>
-                <div>
-                    <label class="text-xs text-slate-400 block mb-1">Kategori Kerusakan</label>
-                    <select id="formItem" class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-brand-500">
-                        <option value="Air Conditioner (AC)">Air Conditioner (AC)</option>
-                        <option value="Electrical">Electrical</option>
-                        <option value="Lighting">Lighting</option>
-                        <option value="Plumbing">Plumbing</option>
-                        <option value="Bathroom">Bathroom</option>
-                        <option value="Door">Door</option>
-                        <option value="Window">Window</option>
-                        <option value="Wall">Wall</option>
-                        <option value="Ceiling">Ceiling</option>
-                        <option value="Floor">Floor</option>
-                        <option value="Furniture">Furniture</option>
-                        <option value="Painting">Painting</option>
-                        <option value="Telephone / TV">Telephone / TV</option>
-                        <option value="Minibar">Minibar</option>
-                        <option value="Others">Others</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="text-xs text-slate-400 block mb-1">Detail Temuan</label>
-                    <textarea id="formNote" rows="3" placeholder="Jelaskan detail kerusakan..." required class="w-full bg-[#1e2124] border border-slate-700 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-brand-500"></textarea>
-                </div>
-                <div>
-                    <label class="text-xs text-slate-400 block mb-1">Lampirkan Foto (Opsional)</label>
-                    <input type="file" id="formPhotoFile" accept="image/*" onchange="previewFormPhoto(event)" class="w-full bg-[#1e2124] border border-slate-700 rounded-xl p-2 text-xs text-slate-300">
-                    <div id="photoPreviewContainer" class="mt-2 hidden">
-                        <img id="photoPreviewImg" src="" alt="Preview" class="w-20 h-20 object-cover rounded-xl border border-slate-700">
-                    </div>
-                </div>
-                <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="closeAddModal()" class="bg-slate-800 text-slate-300 px-4 py-2 rounded-xl text-xs font-semibold">Batal</button>
-                    <button type="submit" class="gold-gradient text-slate-950 px-5 py-2 rounded-xl text-xs font-bold">Kirim Report</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Quick Update -->
-    <div id="quickModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-dark-card border border-dark-border rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b border-dark-border">
-                <h3 class="text-base font-bold text-white flex items-center gap-2">
-                    <i class="fas fa-check-circle text-blue-400"></i> Update Defect (No. Tiket)
-                </h3>
-                <button onclick="closeQuickUpdateModal()" class="text-slate-400 hover:text-white"><i class="fas fa-times text-lg"></i></button>
-            </div>
-            
-            <div class="space-y-3 text-sm">
-                <div>
-                    <label class="text-xs text-slate-400 block mb-1">Pilih Nomor Tiket</label>
-                    <select id="quickTicketSelect" onchange="onQuickTicketChange()" class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-brand-500 font-mono"></select>
-                </div>
-                <div id="quickTicketDetailBox" class="bg-[#1e2124] p-3 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-1 hidden">
-                    <p><strong class="text-white">Pelapor:</strong> <span id="qDetailReporter"></span></p>
-                    <p><strong class="text-white">Lokasi:</strong> <span id="qDetailLocation"></span></p>
-                    <p><strong class="text-white">Catatan:</strong> <span id="qDetailNote"></span></p>
-                </div>
-                <div>
-                    <label class="text-xs text-slate-400 block mb-1" id="quickStatusLabel">Status Update</label>
-                    <select id="quickStatusSelect" class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-brand-500"></select>
-                </div>
-            </div>
-            <div class="flex justify-end gap-2 pt-2">
-                <button onclick="closeQuickUpdateModal()" class="bg-slate-800 text-slate-300 px-4 py-2 rounded-xl text-xs font-semibold">Batal</button>
-                <button onclick="saveQuickUpdate()" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-xl text-xs font-bold">Simpan Update</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Change Password -->
-    <div id="passModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-dark-card border border-dark-border rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b border-dark-border">
-                <h3 class="text-base font-bold text-white flex items-center gap-2">
-                    <i class="fas fa-key text-amber-400"></i> Ganti Password Akun
-                </h3>
-                <button onclick="closeChangePassModal()" class="text-slate-400 hover:text-white"><i class="fas fa-times text-lg"></i></button>
-            </div>
-
-            <div id="passMsgBox" class="p-3 rounded-xl text-xs hidden"></div>
-
-            <form onsubmit="handlePasswordChangeSubmit(event)" class="space-y-3 text-sm">
-                <div>
-                    <label class="text-xs text-slate-400 block mb-1">Password Lama</label>
-                    <input type="password" id="oldPassInput" required class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none">
-                </div>
-                <div>
-                    <label class="text-xs text-slate-400 block mb-1">Password Baru</label>
-                    <input type="password" id="newPassInput" required class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none" placeholder="Minimal 6 karakter">
-                </div>
-                <div>
-                    <label class="text-xs text-slate-400 block mb-1">Konfirmasi Password Baru</label>
-                    <input type="password" id="confirmPassInput" required class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-none">
-                </div>
-                <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="closeChangePassModal()" class="bg-slate-800 text-slate-300 px-4 py-2 rounded-xl text-xs font-semibold">Batal</button>
-                    <button type="submit" class="gold-gradient text-slate-950 px-5 py-2 rounded-xl text-xs font-bold">Simpan Password</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal AI Assist -->
-    <div id="aiModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-dark-card border border-dark-border rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b border-dark-border">
-                <h3 class="text-base font-bold text-white flex items-center gap-2">
-                    <i class="fas fa-sparkles text-amber-400"></i> Erian AI Assistant
-                </h3>
-                <button onclick="closeAiModal()" class="text-slate-400 hover:text-white"><i class="fas fa-times text-lg"></i></button>
-            </div>
-            <div id="aiContentBox" class="bg-[#1e2124] p-4 rounded-xl border border-slate-800 text-xs text-slate-300 whitespace-pre-line leading-relaxed font-sans"></div>
-            <div class="flex justify-end">
-                <button onclick="closeAiModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-xl text-xs font-semibold">Tutup</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Zoom Foto -->
-    <div id="zoomModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[60] flex items-center justify-center p-4 hidden" onclick="closeZoomModal()">
-        <div class="relative max-w-5xl max-h-[90vh] flex flex-col items-center">
-            <button class="absolute -top-12 right-0 text-white bg-slate-800/80 px-4 py-2 rounded-full text-xs font-bold" onclick="closeZoomModal()">Tutup Foto</button>
-            <img id="zoomedImg" src="" alt="Zoomed" class="max-w-full max-h-[85vh] object-contain rounded-2xl border border-slate-700 bg-white" onclick="event.stopPropagation()">
-        </div>
-    </div>
-
-    <script>
-        const initialUserList = [
-            { email: "zainalidris22@gmail.com", pass: "zainal123", name: "Zainal (Asst. FOM)", dept: "FO" },
-            { email: "ameliatanuwidjaja@gmail.com", pass: "amel123", name: "Amel (Accounting Spv)", dept: "CA" },
-            { email: "aswansumarno@gmail.com", pass: "asep123", name: "Asep (FBM)", dept: "FBS" },
-            { email: "dv.bule81@gmail.com", pass: "devy123", name: "Devy (Owner Rep)", dept: "GA" },
-            { email: "indra.fraja@gmail.com", pass: "indra123", name: "Indra (Head Chef)", dept: "FBP" },
-            { email: "rdarst0907@gmail.com", pass: "resti123", name: "Resti (DOSM)", dept: "Sales" },
-            { email: "SarasAndini89@gmail.com", pass: "saras123", name: "Saras (HK SPV)", dept: "HK" },
-            { email: "budihartanto23@gmail.com", pass: "budi123", name: "Budi (Eng SPV)", dept: "Eng" },
-            { email: "rachmatIT23@gmail.com", pass: "rachmat123", name: "Rachmat (ITM)", dept: "IT" },
-            { email: "pipit.sopandian@gmail.com", pass: "pipit123", name: "Pipit (SM)", dept: "Sales" },
-            { email: "septianyuda47@gmail.com", pass: "septian123", name: "Septian (Asst.Bqt Manager)", dept: "FBS" }
-        ];
-
-        const locationMapping = [
-            { floor: "L", room: "Lobby" }, { floor: "L", room: "Male Toilet" }, { floor: "L", room: "Female Toilet" }, { floor: "L", room: "Parking Area" },
-            { floor: "2", room: "Lv.2 Hall" }, { floor: "2", room: "PDR" }, { floor: "2", room: "Female Toilet" }, { floor: "2", room: "Male Toilet" },
-            { floor: "3", room: "Erian 1" }, { floor: "3", room: "Erian 2" }, { floor: "3", room: "Erian 3" }, { floor: "3", room: "Erian 4" }, { floor: "3", room: "Male Toilet" }, { floor: "3", room: "Female Toilet" },
-            { floor: "4", room: "401" }, { floor: "4", room: "402" }, { floor: "4", room: "403" }, { floor: "4", room: "404" }, { floor: "4", room: "405" }, { floor: "4", room: "406" }, { floor: "4", room: "407" }, { floor: "4", room: "408" }, { floor: "4", room: "409" }, { floor: "4", room: "410" }, { floor: "4", room: "411" }, { floor: "4", room: "412" }, { floor: "4", room: "413" }, { floor: "4", room: "414" }, { floor: "4", room: "415" }, { floor: "4", room: "416" }, { floor: "4", room: "417" }, { floor: "4", room: "Corridor Level 4" },
-            { floor: "5", room: "501" }, { floor: "5", room: "502" }, { floor: "5", room: "503" }, { floor: "5", room: "504" }, { floor: "5", room: "505" }, { floor: "5", room: "506" }, { floor: "5", room: "507" }, { floor: "5", room: "508" }, { floor: "5", room: "509" }, { floor: "5", room: "510" }, { floor: "5", room: "511" }, { floor: "5", room: "512" }, { floor: "5", room: "513" }, { floor: "5", room: "514" }, { floor: "5", room: "515" }, { floor: "5", room: "516" }, { floor: "5", room: "517" }, { floor: "5", room: "Corridor Level 5" },
-            { floor: "6", room: "601" }, { floor: "6", room: "602" }, { floor: "6", room: "603" }, { floor: "6", room: "604" }, { floor: "6", room: "605" }, { floor: "6", room: "606" }, { floor: "6", room: "607" }, { floor: "6", room: "608" }, { floor: "6", room: "609" }, { floor: "6", room: "610" }, { floor: "6", room: "611" }, { floor: "6", room: "612" }, { floor: "6", room: "613" }, { floor: "6", room: "Corridor Level 6" },
-            { floor: "7", room: "701" }, { floor: "7", room: "702" }, { floor: "7", room: "703" }, { floor: "7", room: "704" }, { floor: "7", room: "705" }, { floor: "7", room: "706" }, { floor: "7", room: "707" }, { floor: "7", room: "708" }, { floor: "7", room: "709" }, { floor: "7", room: "710" }, { floor: "7", room: "711" }, { floor: "7", room: "712" }, { floor: "7", room: "713" }, { floor: "7", room: "Corridor Level 7" },
-            { floor: "8", room: "801" }, { floor: "8", room: "802" }, { floor: "8", room: "803" }, { floor: "8", room: "804" }, { floor: "8", room: "805" }, { floor: "8", room: "806" }, { floor: "8", room: "807" }, { floor: "8", room: "808" }, { floor: "8", room: "809" }, { floor: "8", room: "810" }, { floor: "8", room: "811" }, { floor: "8", room: "812" }, { floor: "8", room: "813" }, { floor: "8", room: "Corridor Level 8" },
-            { floor: "9", room: "Lv.9 Area" }, { floor: "9", room: "Female Toilet" }, { floor: "9", room: "Male Toilet" }
-        ];
-
-        let initialDefects = [
-            { id: 85, recordNo: "EPF-000085", date: "2026-07-24", floor: "L", room: "Lobby", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Dinding samping pintu tb hancur", photo: "https://lh3.googleusercontent.com/d/1gwl7NRFIJEcmemuKnSZBqDA0CPrs5I0h" },
-            { id: 84, recordNo: "EPF-000084", date: "2026-07-24", floor: "L", room: "Lobby", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Dinding business centers perlu disepet", photo: "https://lh3.googleusercontent.com/d/1sO9WSCTX-7P1pycSgCk9K2RJSshJ0-Uj" },
-            { id: 83, recordNo: "EPF-000083", date: "2026-07-24", floor: "3", room: "Erian 3", item: "Electrical", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Acrylic Pintu Mesin Popcorn Pecah", photo: "https://lh3.googleusercontent.com/d/1N-TdtjPGfKo-UZ6BH2Kxc46m3D17uPOD" }
-        ];
-
-        let userList = JSON.parse(localStorage.getItem('erian_users_list')) || initialUserList;
-        let currentUser = JSON.parse(localStorage.getItem('erian_current_user')) || null;
-        let defects = JSON.parse(localStorage.getItem('erian_defects_data')) || initialDefects;
-        let activeCardFilter = 'All';
-        let tempBase64Photo = '';
-
-        window.onload = function() {
-            if (currentUser) {
-                document.getElementById('loginScreen').classList.add('hidden');
-                initApp();
-            } else {
-                document.getElementById('loginScreen').classList.remove('hidden');
-            }
-        };
-
-        function toggleLoginPass() {
-            const passInput = document.getElementById('authPasswordInput');
-            const icon = document.getElementById('eyeIcon');
-            if (passInput.type === 'password') {
-                passInput.type = 'text';
-                icon.className = 'fas fa-eye-slash text-sm';
-            } else {
-                passInput.type = 'password';
-                icon.className = 'fas fa-eye text-sm';
-            }
-        }
-
-        function handleLogin(e) {
-            e.preventDefault();
-            const email = document.getElementById('authEmailInput').value.trim().toLowerCase();
-            const pass = document.getElementById('authPasswordInput').value;
-            
-            const matched = userList.find(u => u.email.toLowerCase() === email && u.pass === pass);
-            if (matched) {
-                currentUser = matched;
-                localStorage.setItem('erian_current_user', JSON.stringify(currentUser));
-                document.getElementById('loginScreen').classList.add('hidden');
-                initApp();
-            } else {
-                const errBox = document.getElementById('authErrorMsg');
-                const errText = document.getElementById('authErrorText');
-                errText.innerText = "Email atau password salah. Silakan periksa kembali kredensial Anda.";
-                errBox.classList.remove('hidden');
-            }
-        }
-
-        function handleLogout() {
-            localStorage.removeItem('erian_current_user');
-            currentUser = null;
-            window.location.reload();
-        }
-
-        function initApp() {
-            document.getElementById('userInfoHeader').innerHTML = `Logged in as: <span class="text-slate-200 font-medium">${currentUser.name} (${currentUser.dept})</span>`;
-            if (currentUser.dept === 'Eng') {
-                document.getElementById('submitReportBtn').style.display = 'none';
-            }
-            updateStats();
-            renderTable();
-            populateRooms();
-        }
-
-        function updateStats() {
-            document.getElementById('statTotal').innerText = defects.length;
-            document.getElementById('statOpen').innerText = defects.filter(d => d.statusEng === 'Open' || d.checkHK === 'Pending').length;
-            document.getElementById('statDone').innerText = defects.filter(d => d.statusEng === 'Done Progress').length;
-            document.getElementById('statVerified').innerText = defects.filter(d => d.checkHK === 'Verified').length;
-        }
-
-        function renderTable() {
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            const statusF = document.getElementById('statusFilter').value;
-            const floorF = document.getElementById('floorFilter').value;
-
-            const filtered = defects.filter(d => {
-                const matchSearch = d.room.toLowerCase().includes(search) || d.item.toLowerCase().includes(search) || d.name.toLowerCase().includes(search) || d.recordNo.toLowerCase().includes(search);
-                const matchStatus = statusF ? d.statusEng === statusF : true;
-                const matchFloor = floorF ? d.floor === floorF : true;
-                
-                let matchCard = true;
-                if (activeCardFilter === 'Open') matchCard = (d.statusEng === 'Open' || d.checkHK === 'Pending');
-                if (activeCardFilter === 'Done') matchCard = (d.statusEng === 'Done Progress');
-                if (activeCardFilter === 'Verified') matchCard = (d.checkHK === 'Verified');
-
-                return matchSearch && matchStatus && matchFloor && matchCard;
+            const [userList, setUserList] = useState(() => {
+                const saved = localStorage.getItem('erian_users_list');
+                return saved ? JSON.parse(saved) : initialUserList;
             });
 
-            const tbody = document.getElementById('defectTableBody');
-            tbody.innerHTML = '';
+            useEffect(() => {
+                localStorage.setItem('erian_users_list', JSON.stringify(userList));
+            }, [userList]);
 
-            if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-slate-500">Tidak ada data defect yang ditemukan.</td></tr>`;
-                return;
-            }
-
-            filtered.forEach(d => {
-                const floorLabel = d.floor === 'L' ? 'Lobby (L)' : `Lantai ${d.floor}`;
-                const photoHtml = d.photo 
-                    ? `<div class="w-12 h-12 cursor-pointer group relative" onclick="openZoomModal('${d.photo}')"><img src="${d.photo}" class="w-full h-full object-cover rounded-xl border border-slate-700"></div>`
-                    : `<div class="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-[10px] text-slate-500 border border-slate-700">No Foto</div>`;
-
-                const isEng = currentUser.dept === 'Eng';
-                const isHk = currentUser.dept === 'HK';
-
-                const row = document.createElement('tr');
-                row.className = "hover:bg-slate-900/40 transition-colors";
-                row.innerHTML = `
-                    <td class="px-6 py-4 font-mono font-bold text-white">${d.recordNo}<div class="text-[10px] text-slate-500 font-normal">${d.date || ''}</div></td>
-                    <td class="px-6 py-4">${photoHtml}</td>
-                    <td class="px-6 py-4 font-medium text-slate-300">${floorLabel}<br><span class="text-xs text-slate-500">${d.room}</span></td>
-                    <td class="px-6 py-4 text-slate-300"><span class="font-semibold text-white">${d.item}</span><br><span class="text-xs text-slate-400">${d.note || '-'}</span></td>
-                    <td class="px-6 py-4 text-slate-300">${d.name}<br><span class="bg-slate-800 text-slate-400 px-2 py-0.5 rounded text-[10px] font-bold border border-slate-700">${d.dept}</span></td>
-                    <td class="px-6 py-4 text-center">
-                        <select onchange="updateEngStatus(${d.id}, this.value)" ${!isEng ? 'disabled' : ''} class="text-xs p-2 rounded-xl border ${isEng ? 'bg-blue-500/10 border-blue-500/30 text-blue-400 cursor-pointer' : 'bg-slate-900 border-slate-800 text-slate-500'}">
-                            <option value="Open" ${d.statusEng==='Open'?'selected':''}>Open</option>
-                            <option value="Done Progress" ${d.statusEng==='Done Progress'?'selected':''}>Done Progress</option>
-                            <option value="Resolved" ${d.statusEng==='Resolved'?'selected':''}>Resolved</option>
-                        </select>
-                        ${d.picEng ? `<div class="text-[10px] text-blue-400 mt-1">PIC: ${d.picEng}</div>` : ''}
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                        <select onchange="updateHkStatus(${d.id}, this.value)" ${!isHk ? 'disabled' : ''} class="text-xs p-2 rounded-xl border ${isHk ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 cursor-pointer' : 'bg-slate-900 border-slate-800 text-slate-500'}">
-                            <option value="Pending" ${d.checkHK==='Pending'?'selected':''}>Pending</option>
-                            <option value="Not Completed" ${d.checkHK==='Not Completed'?'selected':''}>Not Completed</option>
-                            <option value="Verified" ${d.checkHK==='Verified'?'selected':''}>Verified</option>
-                        </select>
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                        <button onclick="runAiAssist(${d.id})" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 mx-auto transition">
-                            <i class="fas fa-sparkles text-amber-400"></i><span>Analyze</span>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(row);
+            const [currentUser, setCurrentUser] = useState(() => {
+                const saved = localStorage.getItem('erian_current_user');
+                return saved ? JSON.parse(saved) : null;
             });
-        }
 
-        function filterCardClick(type) {
-            activeCardFilter = type;
-            renderTable();
-        }
+            const [authEmailInput, setAuthEmailInput] = useState('');
+            const [authPasswordInput, setAuthPasswordInput] = useState('');
+            const [showLoginPass, setShowLoginPass] = useState(false);
+            const [authError, setAuthError] = useState('');
 
-        function populateRooms() {
-            const floor = document.getElementById('formFloor').value;
-            const roomSelect = document.getElementById('formRoom');
-            roomSelect.innerHTML = '';
-            const rooms = locationMapping.filter(l => l.floor === floor);
-            rooms.forEach(r => {
-                const opt = document.createElement('option');
-                opt.value = r.room;
-                opt.innerText = r.room;
-                roomSelect.appendChild(opt);
-            });
-        }
+            const [changePassOpen, setChangePassOpen] = useState(false);
+            const [oldPassInput, setOldPassInput] = useState('');
+            const [newPassInput, setNewPassInput] = useState('');
+            const [confirmPassInput, setConfirmPassInput] = useState('');
+            const [showOldPass, setShowOldPass] = useState(false);
+            const [showNewPass, setShowNewPass] = useState(false);
+            const [showConfirmPass, setShowConfirmPass] = useState(false);
+            const [passMsg, setPassMsg] = useState({ text: '', type: '' });
 
-        function onFloorSelectChange() {
-            populateRooms();
-        }
-
-        function openAddModal() {
-            const maxNo = defects.reduce((max, d) => {
-                const m = d.recordNo.match(/\d+$/);
-                return m ? Math.max(max, parseInt(m[0], 10)) : max;
-            }, 85);
-            const nextNo = `EPF-${(maxNo + 1).toString().padStart(6, '0')}`;
-            document.getElementById('newRecordNoDisplay').innerText = nextNo;
-            document.getElementById('formNote').value = '';
-            document.getElementById('formPhotoFile').value = '';
-            document.getElementById('photoPreviewContainer').classList.add('hidden');
-            tempBase64Photo = '';
-            populateRooms();
-            document.getElementById('addModal').classList.remove('hidden');
-        }
-
-        function closeAddModal() {
-            document.getElementById('addModal').classList.add('hidden');
-        }
-
-        function previewFormPhoto(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    tempBase64Photo = reader.result;
-                    document.getElementById('photoPreviewImg').src = tempBase64Photo;
-                    document.getElementById('photoPreviewContainer').classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function handleFormSubmit(e) {
-            e.preventDefault();
-            const floor = document.getElementById('formFloor').value;
-            const room = document.getElementById('formRoom').value;
-            const item = document.getElementById('formItem').value;
-            const note = document.getElementById('formNote').value;
-            const today = new Date().toISOString().split('T')[0];
-
-            const maxNo = defects.reduce((max, d) => {
-                const m = d.recordNo.match(/\d+$/);
-                return m ? Math.max(max, parseInt(m[0], 10)) : max;
-            }, 85);
-            const recordNo = `EPF-${(maxNo + 1).toString().padStart(6, '0')}`;
-
-            const newEntry = {
-                id: Date.now(),
-                recordNo,
-                date: today,
-                floor,
-                room,
-                item,
-                name: currentUser.name,
-                dept: currentUser.dept,
-                statusEng: 'Open',
-                picEng: '',
-                checkHK: 'Pending',
-                note,
-                photo: tempBase64Photo
+            const handleLogin = (e) => {
+                e.preventDefault();
+                const matched = userList.find(
+                    u => u.email.toLowerCase() === authEmailInput.trim().toLowerCase() && u.pass === authPasswordInput
+                );
+                if (matched) {
+                    setCurrentUser(matched);
+                    localStorage.setItem('erian_current_user', JSON.stringify(matched));
+                    setAuthError('');
+                    setAuthPasswordInput('');
+                } else {
+                    setAuthError('Email atau password salah. Silakan periksa kembali kredensial Anda.');
+                }
             };
 
-            defects.unshift(newEntry);
-            localStorage.setItem('erian_defects_data', JSON.stringify(defects));
-            closeAddModal();
-            updateStats();
-            renderTable();
-        }
+            const handleLogout = () => {
+                setCurrentUser(null);
+                localStorage.removeItem('erian_current_user');
+            };
 
-        function updateEngStatus(id, val) {
-            defects = defects.map(d => {
-                if (d.id === id) {
-                    let pic = d.picEng;
-                    if (val === 'Done Progress' || val === 'Resolved') pic = currentUser.name;
-                    return { ...d, statusEng: val, picEng: pic };
+            const handleChangePasswordSubmit = (e) => {
+                e.preventDefault();
+                setPassMsg({ text: '', type: '' });
+
+                if (oldPassInput !== currentUser.pass) {
+                    setPassMsg({ text: 'Password lama tidak sesuai.', type: 'error' });
+                    return;
                 }
-                return d;
-            });
-            localStorage.setItem('erian_defects_data', JSON.stringify(defects));
-            updateStats();
-            renderTable();
-        }
 
-        function updateHkStatus(id, val) {
-            defects = defects.map(d => {
-                if (d.id === id) return { ...d, checkHK: val };
-                return d;
-            });
-            localStorage.setItem('erian_defects_data', JSON.stringify(defects));
-            updateStats();
-            renderTable();
-        }
+                if (newPassInput.length < 6) {
+                    setPassMsg({ text: 'Password baru minimal harus 6 karakter.', type: 'error' });
+                    return;
+                }
 
-        function openQuickUpdateModal() {
-            const select = document.getElementById('quickTicketSelect');
-            select.innerHTML = '<option value="">-- Pilih Tiket --</option>';
-            defects.forEach(d => {
-                const opt = document.createElement('option');
-                opt.value = d.id;
-                opt.innerText = `${d.recordNo} - ${d.item} (${d.room})`;
-                select.appendChild(opt);
-            });
-            document.getElementById('quickTicketDetailBox').classList.add('hidden');
-            setupQuickStatusDropdown();
-            document.getElementById('quickModal').classList.remove('hidden');
-        }
+                if (newPassInput === oldPassInput) {
+                    setPassMsg({ text: 'Password baru tidak boleh sama dengan password lama.', type: 'error' });
+                    return;
+                }
 
-        function closeQuickUpdateModal() {
-            document.getElementById('quickModal').classList.add('hidden');
-        }
+                if (newPassInput !== confirmPassInput) {
+                    setPassMsg({ text: 'Konfirmasi password baru tidak cocok.', type: 'error' });
+                    return;
+                }
 
-        function setupQuickStatusDropdown() {
-            const label = document.getElementById('quickStatusLabel');
-            const select = document.getElementById('quickStatusSelect');
-            select.innerHTML = '';
-            if (currentUser.dept === 'Eng') {
-                label.innerText = "Status Defect (Eng)";
-                ['Open', 'Done Progress', 'Resolved'].forEach(s => {
-                    const opt = document.createElement('option');
-                    opt.value = s; opt.innerText = s;
-                    select.appendChild(opt);
+                const updatedList = userList.map(u => {
+                    if (u.email === currentUser.email) {
+                        return { ...u, pass: newPassInput };
+                    }
+                    return u;
                 });
-            } else {
-                label.innerText = "Verifikasi Kebersihan (HK)";
-                [['Pending', 'Pending Check'], ['Not Completed', 'Not Completed'], ['Verified', 'Verified Clean']].forEach(s => {
-                    const opt = document.createElement('option');
-                    opt.value = s[0]; opt.innerText = s[1];
-                    select.appendChild(opt);
-                });
-            }
-        }
 
-        function onQuickTicketChange() {
-            const id = parseInt(document.getElementById('quickTicketSelect').value);
-            const box = document.getElementById('quickTicketDetailBox');
-            if (!id) {
-                box.classList.add('hidden');
-                return;
-            }
-            const d = defects.find(item => item.id === id);
-            if (d) {
-                document.getElementById('qDetailReporter').innerText = `${d.name} (${d.dept})`;
-                document.getElementById('qDetailLocation').innerText = `Lantai ${d.floor} - ${d.room}`;
-                document.getElementById('qDetailNote').innerText = d.note || '-';
-                box.classList.remove('hidden');
-                document.getElementById('quickStatusSelect').value = currentUser.dept === 'Eng' ? d.statusEng : d.checkHK;
-            }
-        }
+                setUserList(updatedList);
+                const updatedCurrent = { ...currentUser, pass: newPassInput };
+                setCurrentUser(updatedCurrent);
+                localStorage.setItem('erian_current_user', JSON.stringify(updatedCurrent));
 
-        function saveQuickUpdate() {
-            const id = parseInt(document.getElementById('quickTicketSelect').value);
-            const val = document.getElementById('quickStatusSelect').value;
-            if (!id) return;
-            if (currentUser.dept === 'Eng') updateEngStatus(id, val);
-            else updateHkStatus(id, val);
-            closeQuickUpdateModal();
-        }
+                setPassMsg({ text: 'Password berhasil diperbarui!', type: 'success' });
+                setTimeout(() => {
+                    setChangePassOpen(false);
+                    setOldPassInput('');
+                    setNewPassInput('');
+                    setConfirmPassInput('');
+                    setPassMsg({ text: '', type: '' });
+                }, 1500);
+            };
 
-        function openChangePassModal() {
-            document.getElementById('oldPassInput').value = '';
-            document.getElementById('newPassInput').value = '';
-            document.getElementById('confirmPassInput').value = '';
-            document.getElementById('passMsgBox').classList.add('hidden');
-            document.getElementById('passModal').classList.remove('hidden');
-        }
+            const initialDefects = [
+                { id: 85, recordNo: "EPF-000085", date: "2026-07-24", floor: "L", room: "Lobby", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Dinding samping pintu tb hancur", photo: "https://lh3.googleusercontent.com/d/1gwl7NRFIJEcmemuKnSZBqDA0CPrs5I0h", history: [] },
+                { id: 84, recordNo: "EPF-000084", date: "2026-07-24", floor: "L", room: "Lobby", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Dinding business centers perlu disepet", photo: "https://lh3.googleusercontent.com/d/1sO9WSCTX-7P1pycSgCk9K2RJSshJ0-Uj", history: [] },
+                { id: 83, recordNo: "EPF-000083", date: "2026-07-24", floor: "3", room: "Erian 3", item: "Electrical", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Acrylic Pintu Mesin Popcorn Pecah", photo: "https://lh3.googleusercontent.com/d/1N-TdtjPGfKo-UZ6BH2Kxc46m3D17uPOD", history: [] },
+                { id: 82, recordNo: "EPF-000082", date: "2026-07-24", floor: "3", room: "Erian 4", item: "Wall", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper Tembok sekat Erian4 Mengelupas", photo: "https://lh3.googleusercontent.com/d/1ye0cK9cCGLGEPcLjTmnTOP9vJmetA8xE", history: [] },
+                { id: 81, recordNo: "EPF-000081", date: "2026-07-24", floor: "3", room: "Erian 2", item: "Wall", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper Dinding Erian1 mengelupas", photo: "https://lh3.googleusercontent.com/d/1dTMKuFIo34w-3jA0Q934_XmlDFZmMSMe", history: [] },
+                { id: 80, recordNo: "EPF-000080", date: "2026-07-24", floor: "3", room: "Female Toilet", item: "Door", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Pintu Toilet HP.. Cacat", photo: "https://lh3.googleusercontent.com/d/1fTCA2dVXgdxbYbz6f48T4haHqmzty79k", history: [] },
+                { id: 79, recordNo: "EPF-000079", date: "2026-07-18", floor: "8", room: "811", item: "Wall", name: "Septian (Asst.Bqt Manager)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Bekas Lem diatas pintu toilet bagian dalam", photo: "https://lh3.googleusercontent.com/d/1-0BbWBf7nakJfhIDnpT-Vz89MrcJhsqV", history: [] },
+                { id: 78, recordNo: "EPF-000078", date: "2026-07-18", floor: "8", room: "811", item: "Wall", name: "Septian (Asst.Bqt Manager)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper diatas meja telpon terkelupas", photo: "https://lh3.googleusercontent.com/d/1ekeWeyaZL-MqlFQZZnbn6hqsPKm7hYYt", history: [] },
+                { id: 77, recordNo: "EPF-000077", date: "2026-07-18", floor: "8", room: "810", item: "Wall", name: "Septian (Asst.Bqt Manager)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Tatakan tempat sabun berkarat dan kotor", photo: "https://lh3.googleusercontent.com/d/1dyBBaUT3yV49f9HBdr7Sho8XUY8Yysb1", history: [] },
+                { id: 76, recordNo: "EPF-000076", date: "2026-07-18", floor: "8", room: "810", item: "Floor", name: "Septian (Asst.Bqt Manager)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Keramik lantai bathroom pecah", photo: "https://lh3.googleusercontent.com/d/1IH4Zjxz6unUEovtlZvaV-l_0GHhFqs7c", history: [] },
+                { id: 75, recordNo: "EPF-000075", date: "2026-07-18", floor: "8", room: "810", item: "Ceiling", name: "Septian (Asst.Bqt Manager)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Fungus di plafon atas wastafel, noda dicat", photo: "https://lh3.googleusercontent.com/d/1qnq0CctRvVEm6JYPesfgWz5XGH_virhP", history: [] },
+                { id: 74, recordNo: "EPF-000074", date: "2026-07-18", floor: "8", room: "810", item: "Door", name: "Septian (Asst.Bqt Manager)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Karet Pintu toilet robek", photo: "https://lh3.googleusercontent.com/d/1qCRNlhV4RxUrO-U25YqUdSufrsbaRWnD", history: [] },
+                { id: 73, recordNo: "EPF-000073", date: "2026-07-18", floor: "8", room: "810", item: "Wall", name: "Septian (Asst.Bqt Manager)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper sobek dekat pintu masuk", photo: "https://lh3.googleusercontent.com/d/1oxPONMe3atuPmr7yRSXrUS--E0bVqVBj", history: [] },
+                { id: 72, recordNo: "EPF-000072", date: "2026-07-18", floor: "8", room: "808", item: "Furniture", name: "Septian (Asst.Bqt Manager)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "HPL Luggage Rack Terkelupas", photo: "https://lh3.googleusercontent.com/d/1JkS69S7M3M1YGFwtXj2Zq_djr1Jgctfc", history: [] },
+                { id: 71, recordNo: "EPF-000071", date: "2026-07-14", floor: "8", room: "810", item: "Ceiling", name: "Septian (Asst.Bqt Manager)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Ceiling dekat grill AC terkelupas", photo: "https://lh3.googleusercontent.com/d/17Y4PhgBeLFzI4OLL0HsP8MLBUuKpwpZD", history: [] },
+                { id: 70, recordNo: "EPF-000070", date: "2026-07-10", floor: "8", room: "808", item: "Wall", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Beberapa sambungan wallpaper sedikit terbuka", photo: "https://lh3.googleusercontent.com/d/1MZta8YD6ePK4u6ht9o2E1YUfdKEQt5gX", history: [] },
+                { id: 69, recordNo: "EPF-000069", date: "2026-07-10", floor: "8", room: "Corridor Level 8", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sambungan wallpaper renggang, sambungan karpet", photo: "https://lh3.googleusercontent.com/d/1-MzrIfXHiHBgyOy0g-Or6hVD2sF8KOzp", history: [] },
+                { id: 68, recordNo: "EPF-000068", date: "2026-07-10", floor: "8", room: "Corridor Level 8", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sambungan wallpaper renggang, sambungan karpet", photo: "https://lh3.googleusercontent.com/d/1V0ZvClcf1E1N1LKpXjFUNsVZQQ6a6lvl", history: [] },
+                { id: 67, recordNo: "EPF-000067", date: "2026-07-10", floor: "7", room: "Corridor Level 7", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sambungan wallpaper renggang, sambungan karpet", photo: "https://lh3.googleusercontent.com/d/1toaOcl2y84EMb-MFu4zMXc1ACd39NIiF", history: [] },
+                { id: 66, recordNo: "EPF-000066", date: "2026-07-10", floor: "7", room: "Corridor Level 7", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sambungan wallpaper renggang, sambungan karpet", photo: "https://lh3.googleusercontent.com/d/1vDAfmStnVLM-NBdJJTV9kqmsVZmDOk4E", history: [] },
+                { id: 65, recordNo: "EPF-000065", date: "2026-07-10", floor: "7", room: "Corridor Level 7", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sambungan wallpaper renggang, sambungan karpet", photo: "https://lh3.googleusercontent.com/d/1b7KVouZvYhtLZo-ptRXX1QOiHj7iZFfR", history: [] },
+                { id: 64, recordNo: "EPF-000064", date: "2026-07-10", floor: "6", room: "Corridor Level 6", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sambungan wallpaper renggang, sambungan karpet", photo: "https://lh3.googleusercontent.com/d/1ay6VhnzluDjqX4hteeNqGJ0XV7pvS80_", history: [] },
+                { id: 63, recordNo: "EPF-000063", date: "2026-07-10", floor: "6", room: "Corridor Level 6", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "wallpaper renggang, karpet corridor renggang", photo: "https://lh3.googleusercontent.com/d/1YCgz2QoudoMht6RXfDLM-UKhwysRtQSY", history: [] },
+                { id: 62, recordNo: "EPF-000062", date: "2026-07-10", floor: "5", room: "Corridor Level 5", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sambungan wallpaper renggang, karpet renggang", photo: "https://lh3.googleusercontent.com/d/12tFUrIolaLieZxA9BRqXvkzMMwqpTx7z", history: [] },
+                { id: 61, recordNo: "EPF-000061", date: "2026-07-10", floor: "6", room: "606", item: "Wall", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper fungus dan sambungan terkelupas", photo: "https://lh3.googleusercontent.com/d/1s0C-E9nrw4kmGOhQI0IsGeW5MMWAQTyE", history: [] },
+                { id: 60, recordNo: "EPF-000060", date: "2026-07-10", floor: "6", room: "606", item: "Wall", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper fungus.. noda bocor dr bathrom atas", photo: "https://lh3.googleusercontent.com/d/1gkzwzq9Mg3xXK_4g1t5QOc5Abx2_2jVk", history: [] },
+                { id: 59, recordNo: "EPF-000059", date: "2026-07-10", floor: "6", room: "606", item: "Wall", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper fungus.. coring bathroom retak", photo: "https://lh3.googleusercontent.com/d/1hOEdc16gMcba8GiWsaeb2zxMdmVMTd4I", history: [] },
+                { id: 58, recordNo: "EPF-000058", date: "2026-07-10", floor: "6", room: "603", item: "Window", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Kaca pecah dan sambungan wallpaper ngelupas", photo: "https://lh3.googleusercontent.com/d/1YQWwOVthVM4tLrsa2Ra2CPPOhi0PemGh", history: [] },
+                { id: 57, recordNo: "EPF-000057", date: "2026-07-10", floor: "4", room: "Corridor Level 4", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sambungan wallpaper renggang, karpet renggang", photo: "https://lh3.googleusercontent.com/d/1qUrkt6HJAho6mH6UDYnAQViOqxYbkG4M", history: [] },
+                { id: 56, recordNo: "EPF-000056", date: "2026-07-10", floor: "5", room: "512", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sambungan wallpaper ngelupas, ceiling noda", photo: "https://lh3.googleusercontent.com/d/1out9q7Lv0uw5M-t_MgKf53kW1dFHrYzA", history: [] },
+                { id: 55, recordNo: "EPF-000055", date: "2026-07-10", floor: "4", room: "Corridor Level 4", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sambungan wallpaper renggang, ceiling noda", photo: "https://lh3.googleusercontent.com/d/1gUd9yssIlE5w3WVLa_gzewqEtVaj3ljg", history: [] },
+                { id: 54, recordNo: "EPF-000054", date: "2026-07-10", floor: "5", room: "516", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sambungan wallpaper renggang, plafon deket jendela bocor", photo: "https://lh3.googleusercontent.com/d/1k3vK3qC21WwsOe7Du0Gj2cLTZqFUmIQE", history: [] },
+                { id: 53, recordNo: "EPF-000053", date: "2026-07-10", floor: "4", room: "417", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "wallpaper bolong & ada yg terkelupas, plafon bernoda", photo: "https://lh3.googleusercontent.com/d/19gQj1kK5mjNECgDdmkYMv-YF-GdHrfuE", history: [] },
+                { id: 52, recordNo: "EPF-000052", date: "2026-07-10", floor: "4", room: "416", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "wallpaper belang, plafon kamar mandi kotor/bekas bocor", photo: "https://lh3.googleusercontent.com/d/1MUawqf2S4RyX5o52cNjG9HCrqpoi_AfH", history: [] },
+                { id: 51, recordNo: "EPF-000051", date: "2026-07-10", floor: "4", room: "415", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "nat area toilet fungus, nat kamar mandi byk kotor/fungus", photo: "https://lh3.googleusercontent.com/d/1kuiE_K13Td_7gVRAuzE5TeL0Jimfrn65", history: [] },
+                { id: 50, recordNo: "EPF-000050", date: "2026-07-10", floor: "4", room: "411", item: "Bathroom", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "plafon headshower renggang, wallpaper fungus", photo: "https://lh3.googleusercontent.com/d/1emc3D8upPgyUCILMyupF04zrGhNq5T2d", history: [] },
+                { id: 49, recordNo: "EPF-000049", date: "2026-07-10", floor: "4", room: "413", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "cermin fungus, nat dinding toilet hancur, wallpaper fungus", photo: "https://lh3.googleusercontent.com/d/1cgoFa86h47cQzpWTWh61poJ9zpkz1OXN", history: [] },
+                { id: 48, recordNo: "EPF-000048", date: "2026-07-10", floor: "4", room: "412", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "nat dinding toilet fungus, sambungan wallpaper ngelupas", photo: "https://lh3.googleusercontent.com/d/1yNazq8tzk6XEu50cgYrPghpRUTKf49bd", history: [] },
+                { id: 47, recordNo: "EPF-000047", date: "2026-07-10", floor: "4", room: "411", item: "Bathroom", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sudah di corr, sunblast berjemur", photo: "https://lh3.googleusercontent.com/d/1ftdSoGi11l0h5nZN1HbPvQAxdon3C_ym", history: [] },
+                { id: 46, recordNo: "EPF-000046", date: "2026-07-10", floor: "4", room: "410", item: "Bathroom", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Nat bolong, plafon fungus/noda sepancuran", photo: "https://lh3.googleusercontent.com/d/1WycSuQVq0x8z5UeGCPGP_B2BmGJ9CeqC", history: [] },
+                { id: 45, recordNo: "EPF-000045", date: "2026-07-10", floor: "5", room: "517", item: "Wall", name: "Pipit (SM)", dept: "Sales", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Fungus", photo: "https://lh3.googleusercontent.com/d/1Trog_ArmxzgtHiCO6Yz2Om8DJhcNEWfF", history: [] },
+                { id: 44, recordNo: "EPF-000044", date: "2026-07-10", floor: "5", room: "501", item: "Furniture", name: "Pipit (SM)", dept: "Sales", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Curtain dirty", photo: "https://lh3.googleusercontent.com/d/1lXeZODhw_oTg9hK71GLXSIsOTyFyHHde", history: [] },
+                { id: 43, recordNo: "EPF-000043", date: "2026-07-10", floor: "5", room: "501", item: "Furniture", name: "Pipit (SM)", dept: "Sales", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Sofa spot", photo: "https://lh3.googleusercontent.com/d/1cNM_pbYZGl9MczfjuntprdAER1rJpgCq", history: [] },
+                { id: 42, recordNo: "EPF-000042", date: "2026-07-10", floor: "5", room: "501", item: "Wall", name: "Pipit (SM)", dept: "Sales", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Sobek", photo: "https://lh3.googleusercontent.com/d/1pXEMtzogp6jN2iu4xUsEWIHMHLTzeeIq", history: [] },
+                { id: 41, recordNo: "EPF-000041", date: "2026-07-10", floor: "6", room: "605", item: "Wall", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Sambungan wallpaper ngelupas", photo: "https://lh3.googleusercontent.com/d/193kex3DrvEuEiQHgG-0aQevYDeE2t1LD", history: [] },
+                { id: 40, recordNo: "EPF-000040", date: "2026-07-10", floor: "6", room: "604", item: "Window", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Kaca pecah & wallpaper fungus", photo: "https://lh3.googleusercontent.com/d/1VpEfyMehRTBfSSW35Ddas0xlvjQr-o-E", history: [] },
+                { id: 39, recordNo: "EPF-000039", date: "2026-07-07", floor: "7", room: "Corridor Level 7", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Dinding corridor lv. 7 perlu perapihan", photo: "https://lh3.googleusercontent.com/d/1sUFZ2gW2MyPE33dVlFmPNWvjl-NGkyo3", history: [] },
+                { id: 38, recordNo: "EPF-000038", date: "2026-07-07", floor: "7", room: "704", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Dinding 704 dirapihkan", photo: "https://lh3.googleusercontent.com/d/1rLvKOA-n4yNDvyh9mTfb936bC8pIAnaM", history: [] },
+                { id: 37, recordNo: "EPF-000037", date: "2026-07-07", floor: "7", room: "703", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "seperut dinding kamar Mandi mulai mengelupas", photo: "https://lh3.googleusercontent.com/d/1fLKfOjIfoQfXk6Xg2wIk_qkNBq_xRq7-", history: [] },
+                { id: 36, recordNo: "EPF-000036", date: "2026-07-07", floor: "7", room: "702", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "seperut kamar mandi 702 perlu dirapihkan", photo: "https://lh3.googleusercontent.com/d/1WvuxcTWFzznRNuImjUgQcA_PYvDEaKPb", history: [] },
+                { id: 35, recordNo: "EPF-000035", date: "2026-07-07", floor: "7", room: "702", item: "Furniture", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallboard 702 perlu diganti", photo: "https://lh3.googleusercontent.com/d/1qUpIeZhNON_bG0XgYPU5jgfQt121PDYu", history: [] },
+                { id: 34, recordNo: "EPF-000034", date: "2026-07-07", floor: "7", room: "Corridor Level 7", item: "Ceiling", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "ceiling depan 702 plumbing", photo: "https://lh3.googleusercontent.com/d/1UeRzDvUWWAUakPzKZdKJjuLND4G582u8", history: [] },
+                { id: 33, recordNo: "EPF-000033", date: "2026-07-07", floor: "7", room: "701", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Dinding pintu kamar mandi 701 perlu perapihan", photo: "https://lh3.googleusercontent.com/d/1l58vttmuGsblQNplElpaMnDk_BCn1jUq", history: [] },
+                { id: 32, recordNo: "EPF-000032", date: "2026-07-07", floor: "7", room: "701", item: "Furniture", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "tempat sabun 701 perlu diganti", photo: "https://lh3.googleusercontent.com/d/1E4fIL-zKMA0EqWZwqnn7rOPW-c0YyKTJ", history: [] },
+                { id: 31, recordNo: "EPF-000031", date: "2026-07-07", floor: "7", room: "701", item: "Ceiling", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Dinding area ac cracking", photo: "https://lh3.googleusercontent.com/d/1BA4paMG6fBfqN-NMz0tpPlZOTmBpINn5", history: [] },
+                { id: 30, recordNo: "EPF-000030", date: "2026-07-07", floor: "7", room: "701", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper samping sofa lepas-lepas", photo: "https://lh3.googleusercontent.com/d/1XWcwjYJhrgB2mM76qGg9Tb2sX2jVp7uj", history: [] },
+                { id: 29, recordNo: "EPF-000029", date: "2026-07-07", floor: "7", room: "701", item: "Ceiling", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "depan pintu 701 plumbing", photo: "https://lh3.googleusercontent.com/d/1PYduuHVLS9HFV-Oseah8-dIueeAknBeF", history: [] },
+                { id: 28, recordNo: "EPF-000028", date: "2026-07-06", floor: "6", room: "613", item: "Bathroom", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Pojok Kamar mandi.. Rembes dan tidak rapi", photo: "https://lh3.googleusercontent.com/d/1urAYNC5gKAPz3UVh5lOwlJWe-7ce35-z", history: [] },
+                { id: 27, recordNo: "EPF-000027", date: "2026-07-06", floor: "6", room: "611", item: "Electrical", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Exhaust Toilet Mati", photo: "https://lh3.googleusercontent.com/d/18RA2B4nGEspCu1JeCTkb1QhCQLlhO4g5", history: [] },
+                { id: 26, recordNo: "EPF-000026", date: "2026-07-06", floor: "6", room: "610", item: "Bathroom", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Pojok Tembok Toilet. Bolong, Perlu di Nat.", photo: "https://lh3.googleusercontent.com/d/1jfpG0RhOa6Y6fxmmBDjLB8p7FfgqaXtz", history: [] },
+                { id: 25, recordNo: "EPF-000025", date: "2026-07-06", floor: "6", room: "609", item: "Wall", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Tembok siku.. area Toilet perlu di nat", photo: "https://lh3.googleusercontent.com/d/19sx-aViCrWe2f8s6-_RyvkkT70zeelAZ", history: [] },
+                { id: 24, recordNo: "EPF-000024", date: "2026-07-06", floor: "6", room: "613", item: "Bathroom", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Siku.. dinding area toilet Bolong.. perlu di Nat", photo: "https://lh3.googleusercontent.com/d/1rt25h2zQwQ26qS1DrV-IoKEypEhpodlS", history: [] },
+                { id: 23, recordNo: "EPF-000023", date: "2026-07-05", floor: "5", room: "517", item: "Wall", name: "Rachmat (ITM)", dept: "IT", statusEng: "Open", picEng: "", checkHK: "Pending", note: "List kayu yg di tembok bagian bawah ada yg lepas", photo: "https://lh3.googleusercontent.com/d/1pbx-Z6UMhucH6P2U9Ov6P6W7k97KO-AG", history: [] },
+                { id: 22, recordNo: "EPF-000022", date: "2026-07-05", floor: "5", room: "517", item: "Wall", name: "Rachmat (ITM)", dept: "IT", statusEng: "Open", picEng: "", checkHK: "Pending", note: "List kayu yg di tembok ada yg lepas", photo: "https://lh3.googleusercontent.com/d/1Y0eCihBEFe23HKGGCs8neSfQ9OoHUxIC", history: [] },
+                { id: 21, recordNo: "EPF-000021", date: "2026-07-04", floor: "4", room: "406", item: "Wall", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Kipas perlu.. sambungan terbuka..", photo: "https://lh3.googleusercontent.com/d/1cLORlnSDOK56YPNjRiLZN9aCiGY4Z1sQ", history: [] },
+                { id: 20, recordNo: "EPF-000020", date: "2026-07-04", floor: "4", room: "405", item: "Window", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Retak..", photo: "https://lh3.googleusercontent.com/d/1XiuwM8cw0C4lwqHxK7gwI5MES0kzILZ8", history: [] },
+                { id: 19, recordNo: "EPF-000019", date: "2026-07-04", floor: "4", room: "405", item: "Bathroom", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Nat wc berjamur, bagian bawah pinggirnya", photo: "https://lh3.googleusercontent.com/d/1MqHTpkRbsfVp9uagSkwFRwOeNkQANgjo", history: [] },
+                { id: 18, recordNo: "EPF-000018", date: "2026-07-04", floor: "4", room: "403", item: "Bathroom", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Exhaust kamar mandi mati", photo: "", history: [] },
+                { id: 17, recordNo: "EPF-000017", date: "2026-07-04", floor: "4", room: "403", item: "Bathroom", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Nat tembok dekat kamar mandi bolong", photo: "https://lh3.googleusercontent.com/d/1QZDEiO_rPq919Ucr9Zlz7qr15hsVQXP7", history: [] },
+                { id: 16, recordNo: "EPF-000016", date: "2026-07-04", floor: "4", room: "403", item: "Bathroom", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Hand shower mulai botak untuk kawatnya", photo: "https://lh3.googleusercontent.com/d/1hiipvu2clxV2EzL6tfldbJhFvYb22kaH", history: [] },
+                { id: 15, recordNo: "EPF-000015", date: "2026-07-04", floor: "4", room: "403", item: "Telephone / TV", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Tv biru", photo: "https://lh3.googleusercontent.com/d/1P7PScF3-Uhnr07TNAkdWLoFyg2ti4d6T", history: [] },
+                { id: 14, recordNo: "EPF-000014", date: "2026-07-04", floor: "4", room: "403", item: "Wall", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper atas bed retak.. sambungan wal", photo: "https://lh3.googleusercontent.com/d/1JM_gU8ozuzWRUT0-D7306uRI6zWDvarr", history: [] },
+                { id: 13, recordNo: "EPF-000013", date: "2026-07-07", floor: "6", room: "611", item: "Wall", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper fungus dan sambungan mengelupas", photo: "https://lh3.googleusercontent.com/d/1jY1c_gyWUYdRBYcplPKiGMu6kjhqirbj", history: [] },
+                { id: 12, recordNo: "EPF-000012", date: "2026-07-07", floor: "6", room: "629", item: "Wall", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Fungus wallpaper di balik pintu, dan sambung", photo: "https://lh3.googleusercontent.com/d/1qZeqad0A_DOORRhAJcpIniI70As0TW0Z", history: [] },
+                { id: 11, recordNo: "EPF-000011", date: "2026-07-07", floor: "6", room: "613", item: "Ceiling", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Coring depan wastafel noda leaking..cek in", photo: "https://lh3.googleusercontent.com/d/1bLtU2-Ksy4V2xqJb57d343nW138RoAVF", history: [] },
+                { id: 10, recordNo: "EPF-000010", date: "2026-07-07", floor: "6", room: "608", item: "Bathroom", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Sealant bathroom fungus", photo: "https://lh3.googleusercontent.com/d/1U_SOybTl8_5_ma0YHpgjDuRkAOpGUX80", history: [] },
+                { id: 9, recordNo: "EPF-000009", date: "2026-07-07", floor: "6", room: "602", item: "Ceiling", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Ceiling bathroom fungus & wallpaper Fungus", photo: "https://lh3.googleusercontent.com/d/1Xhbdn4RkOf5l-yMI-Hu0rSU2bH9xui3c", history: [] },
+                { id: 8, recordNo: "EPF-000008", date: "2026-07-07", floor: "L", room: "Parking Area", item: "Others", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "test", photo: "https://lh3.googleusercontent.com/d/16vKHYvO68pZNY_Gly0iHMDICWrw-TKPP", history: [] },
+                { id: 7, recordNo: "EPF-000007", date: "2026-07-07", floor: "6", room: "613", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallboard Siku Pecah Pojok bawah", photo: "https://lh3.googleusercontent.com/d/1K4dZdN8oFIBn1CO5zrCRXLKrdip0WXK-", history: [] }
+            ];
 
-        function closeChangePassModal() {
-            document.getElementById('passModal').classList.add('hidden');
-        }
-
-        function handlePasswordChangeSubmit(e) {
-            e.preventDefault();
-            const oldP = document.getElementById('oldPassInput').value;
-            const newP = document.getElementById('newPassInput').value;
-            const confP = document.getElementById('confirmPassInput').value;
-            const msgBox = document.getElementById('passMsgBox');
-
-            if (oldP !== currentUser.pass) {
-                msgBox.className = "p-3 rounded-xl text-xs bg-red-500/10 border border-red-500/30 text-red-400";
-                msgBox.innerText = "Password lama tidak sesuai.";
-                msgBox.classList.remove('hidden');
-                return;
-            }
-            if (newP.length < 6) {
-                msgBox.className = "p-3 rounded-xl text-xs bg-red-500/10 border border-red-500/30 text-red-400";
-                msgBox.innerText = "Password baru minimal 6 karakter.";
-                msgBox.classList.remove('hidden');
-                return;
-            }
-            if (newP !== confP) {
-                msgBox.className = "p-3 rounded-xl text-xs bg-red-500/10 border border-red-500/30 text-red-400";
-                msgBox.innerText = "Konfirmasi password baru tidak cocok.";
-                msgBox.classList.remove('hidden');
-                return;
-            }
-
-            userList = userList.map(u => u.email === currentUser.email ? { ...u, pass: newP } : u);
-            currentUser.pass = newP;
-            localStorage.setItem('erian_users_list', JSON.stringify(userList));
-            localStorage.setItem('erian_current_user', JSON.stringify(currentUser));
-
-            msgBox.className = "p-3 rounded-xl text-xs bg-emerald-500/10 border border-emerald-500/30 text-emerald-400";
-            msgBox.innerText = "Password berhasil diperbarui!";
-            msgBox.classList.remove('hidden');
-            setTimeout(() => closeChangePassModal(), 1500);
-        }
-
-        function runAiAssist(id) {
-            const d = defects.find(item => item.id === id);
-            if (!d) return;
-            const note = d.note ? d.note.toLowerCase() : "";
-            let cause = `Penurunan kualitas fisik atau estetika pada komponen ${d.item.toLowerCase()} di area ${d.room}.`;
-            let solution = `Lakukan pengecekan menyeluruh dan perbaikan finishing sesuai standar hotel.`;
-
-            if (note.includes('fungus') || note.includes('jamur') || note.includes('bocor') || note.includes('leaking')) {
-                cause = `Terdeteksi masalah kelembapan tinggi atau rembesan pipa di area ${d.room}.`;
-                solution = `1. Bersihkan area dari jamur menggunakan cairan fungisida.\n2. Periksa sumber kebocoran pipa terdekat.`;
-            } else if (note.includes('pecah') || note.includes('sobek') || note.includes('kelupas')) {
-                cause = `Kerusakan material fisik akibat usia pakai atau gesekan.`;
-                solution = `1. Ganti material dengan unit baru.\n2. Lakukan penambalan atau perapihan secara presisi.`;
-            }
-
-            const text = `Analisis Erian AI Assistant:\n• Lokasi: ${d.room} (Lantai ${d.floor})\n• Kategori: ${d.item}\n• Catatan: "${d.note || '-'}"\n\n🔍 Hipotesis Akar Masalah:\n• ${cause}\n\n🛠️ Rekomendasi Solusi Teknis:\n${solution}`;
-            document.getElementById('aiContentBox').innerText = text;
-            document.getElementById('aiModal').classList.remove('hidden');
-        }
-
-        function closeAiModal() {
-            document.getElementById('aiModal').classList.add('hidden');
-        }
-
-        function openZoomModal(src) {
-            document.getElementById('zoomedImg').src = src;
-            document.getElementById('zoomModal').classList.remove('hidden');
-        }
-
-        function closeZoomModal() {
-            document.getElementById('zoomModal').classList.add('hidden');
-        }
-
-        function exportToExcel() {
-            let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"/></head><body><table>`;
-            html += `<tr><th>No. Record</th><th>Date</th><th>Floor</th><th>Room</th><th>Item</th><th>Reporter</th><th>Dept</th><th>Eng Status</th><th>HK Status</th><th>Note</th></tr>`;
-            defects.forEach(d => {
-                html += `<tr><td>${d.recordNo}</td><td>${d.date||''}</td><td>${d.floor}</td><td>${d.room}</td><td>${d.item}</td><td>${d.name}</td><td>${d.dept}</td><td>${d.statusEng}</td><td>${d.checkHK}</td><td>${d.note||''}</td></tr>`;
+            const [defects, setDefects] = useState(() => {
+                const saved = localStorage.getItem('erian_defects_data');
+                return saved ? JSON.parse(saved) : initialDefects;
             });
-            html += `</table></body></html>`;
-            const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `Erian_Defect_Report_${new Date().toISOString().split('T')[0]}.xls`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+
+            useEffect(() => {
+                localStorage.setItem('erian_defects_data', JSON.stringify(defects));
+            }, [defects]);
+
+            const [isModalOpen, setIsModalOpen] = useState(false);
+            const [search, setSearch] = useState('');
+            const [filterStatus, setFilterStatus] = useState('');
+            const [filterFloor, setFilterFloor] = useState('');
+            const [startDate, setStartDate] = useState('');
+            const [endDate, setEndDate] = useState('');
+            const [activeFilterCard, setActiveFilterCard] = useState('Total');
+
+            const [quickUpdateOpen, setQuickUpdateOpen] = useState(false);
+            const [quickTicketId, setQuickTicketId] = useState('');
+            const [updateValue, setUpdateValue] = useState('');
+
+            const [enlargedPhoto, setEnlargedPhoto] = useState(null);
+
+            const [aiModalOpen, setAiModalOpen] = useState(false);
+            const [aiAnalysisResult, setAiAnalysisResult] = useState('');
+            const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+            const itemList = [
+                "Air Conditioner (AC)", "Electrical", "Lighting", "Plumbing", 
+                "Bathroom", "Door", "Window", "Wall", "Ceiling", "Floor", 
+                "Furniture", "Painting", "Telephone / TV", "Minibar", "Others"
+            ];
+
+            const locationMapping = [
+                { floor: "L", room: "Lobby" }, { floor: "L", room: "Male Toilet" },
+                { floor: "L", room: "Female Toilet" }, { floor: "L", room: "Parking Area" },
+                { floor: "2", room: "Lv.2 Hall" }, { floor: "2", room: "PDR" },
+                { floor: "2", room: "Female Toilet" }, { floor: "2", room: "Male Toilet" },
+                { floor: "3", room: "Erian 1" }, { floor: "3", room: "Erian 2" }, { floor: "3", room: "Erian 3" },
+                { floor: "3", room: "Erian 4" }, { floor: "3", room: "Male Toilet" }, { floor: "3", room: "Female Toilet" },
+                { floor: "4", room: "401" }, { floor: "4", room: "402" }, { floor: "4", room: "403" },
+                { floor: "4", room: "404" }, { floor: "4", room: "405" }, { floor: "4", room: "406" },
+                { floor: "4", room: "407" }, { floor: "4", room: "408" }, { floor: "4", room: "409" },
+                { floor: "4", room: "410" }, { floor: "4", room: "411" }, { floor: "4", room: "412" },
+                { floor: "4", room: "413" }, { floor: "4", room: "414" }, { floor: "4", room: "415" },
+                { floor: "4", room: "416" }, { floor: "4", room: "417" }, { floor: "4", room: "Corridor Level 4" },
+                { floor: "5", room: "501" }, { floor: "5", room: "502" }, { floor: "5", room: "503" },
+                { floor: "5", room: "504" }, { floor: "5", room: "505" }, { floor: "5", room: "506" },
+                { floor: "5", room: "507" }, { floor: "5", room: "508" }, { floor: "5", room: "509" },
+                { floor: "5", room: "510" }, { floor: "5", room: "511" }, { floor: "5", room: "512" },
+                { floor: "5", room: "513" }, { floor: "5", room: "514" }, { floor: "5", room: "515" },
+                { floor: "5", room: "516" }, { floor: "5", room: "517" }, { floor: "5", room: "Corridor Level 5" },
+                { floor: "6", room: "601" }, { floor: "6", room: "602" }, { floor: "6", room: "603" },
+                { floor: "6", room: "604" }, { floor: "6", room: "605" }, { floor: "6", room: "606" },
+                { floor: "6", room: "607" }, { floor: "6", room: "608" }, { floor: "6", room: "609" },
+                { floor: "6", room: "610" }, { floor: "6", room: "611" }, { floor: "6", room: "612" },
+                { floor: "6", room: "613" }, { floor: "6", room: "Corridor Level 6" },
+                { floor: "7", room: "701" }, { floor: "7", room: "702" }, { floor: "7", room: "703" },
+                { floor: "7", room: "704" }, { floor: "7", room: "705" }, { floor: "7", room: "706" },
+                { floor: "7", room: "707" }, { floor: "7", room: "708" }, { floor: "7", room: "709" },
+                { floor: "7", room: "710" }, { floor: "7", room: "711" }, { floor: "7", room: "712" },
+                { floor: "7", room: "713" }, { floor: "7", room: "Corridor Level 7" },
+                { floor: "8", room: "801" }, { floor: "8", room: "802" }, { floor: "8", room: "803" },
+                { floor: "8", room: "804" }, { floor: "8", room: "805" }, { floor: "8", room: "806" },
+                { floor: "8", room: "807" }, { floor: "8", room: "808" }, { floor: "8", room: "809" },
+                { floor: "8", room: "810" }, { floor: "8", room: "811" }, { floor: "8", room: "812" },
+                { floor: "8", room: "813" }, { floor: "8", room: "Corridor Level 8" },
+                { floor: "9", room: "Lv.9 Area" }, { floor: "9", room: "Female Toilet" }, { floor: "9", room: "Male Toilet" }
+            ];
+
+            const [formFloor, setFormFloor] = useState('L');
+            const [formRoom, setFormRoom] = useState('Lobby');
+            const [formItem, setFormItem] = useState('Air Conditioner (AC)');
+            const [formNote, setFormNote] = useState('');
+            const [formPhoto, setFormPhoto] = useState(null);
+
+            const availableRooms = locationMapping.filter(loc => loc.floor === formFloor);
+
+            const nextRecordNum = useMemo(() => {
+                if (defects.length === 0) return 86;
+                const numbers = defects.map(d => {
+                    const match = d.recordNo.match(/\d+$/);
+                    return match ? parseInt(match[0], 10) : 0;
+                });
+                return Math.max(...numbers) + 1;
+            }, [defects]);
+            
+            const nextFormattedRecordNo = `EPF-${nextRecordNum.toString().padStart(6, '0')}`;
+
+            const handleFloorChange = (e) => {
+                const floor = e.target.value;
+                setFormFloor(floor);
+                const rooms = locationMapping.filter(loc => loc.floor === floor);
+                if (rooms.length > 0) setFormRoom(rooms[0].room);
+            };
+
+            const handlePhotoUpload = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => setFormPhoto(reader.result);
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                const today = new Date().toISOString().split('T')[0];
+                const newEntry = {
+                    id: Date.now(),
+                    recordNo: nextFormattedRecordNo,
+                    date: today,
+                    floor: formFloor,
+                    room: formRoom,
+                    item: formItem,
+                    name: currentUser.name,
+                    dept: currentUser.dept,
+                    statusEng: 'Open',
+                    picEng: '',
+                    checkHK: 'Pending',
+                    note: formNote,
+                    photo: formPhoto,
+                    history: [{ timestamp: new Date().toLocaleString(), action: `Report created by ${currentUser.name} (${currentUser.dept})` }]
+                };
+                setDefects([newEntry, ...defects]);
+                setIsModalOpen(false);
+                setFormNote('');
+                setFormPhoto(null);
+            };
+
+            const updateEngStatus = (id, val) => {
+                setDefects(defects.map(d => {
+                    if (d.id === id) {
+                        let updatedPic = d.picEng;
+                        if (val === 'Done Progress' || val === 'Resolved') {
+                            updatedPic = currentUser.name;
+                        }
+                        const histEntry = { timestamp: new Date().toLocaleString(), action: `Eng status changed to '${val}' by ${currentUser.name}` };
+                        return { 
+                            ...d, 
+                            statusEng: val, 
+                            picEng: updatedPic, 
+                            history: [...(d.history || []), histEntry] 
+                        };
+                    }
+                    return d;
+                }));
+            };
+
+            const updateHkStatus = (id, val) => {
+                setDefects(defects.map(d => {
+                    if (d.id === id) {
+                        const histEntry = { timestamp: new Date().toLocaleString(), action: `HK verification changed to '${val}' by ${currentUser.name}` };
+                        return { 
+                            ...d, 
+                            checkHK: val, 
+                            history: [...(d.history || []), histEntry] 
+                        };
+                    }
+                    return d;
+                }));
+            };
+
+            const handleQuickTicketChange = (e) => {
+                const tId = Number(e.target.value);
+                setQuickTicketId(tId);
+                if (tId) {
+                    const def = defects.find(d => d.id === tId);
+                    if (def) setUpdateValue(currentUser.dept === 'Eng' ? def.statusEng : def.checkHK);
+                }
+            };
+
+            const handleQuickUpdateSubmit = (e) => {
+                e.preventDefault();
+                const def = defects.find(d => d.id === quickTicketId);
+                if (def) {
+                    if (currentUser.dept === 'Eng') {
+                        updateEngStatus(def.id, updateValue);
+                    } else {
+                        updateHkStatus(def.id, updateValue);
+                    }
+                }
+                setQuickUpdateOpen(false);
+                setQuickTicketId('');
+            };
+
+            const runAiAnalysis = (defect) => {
+                setAiModalOpen(true);
+                setIsAnalyzing(true);
+                setTimeout(() => {
+                    const item = defect.item || "General Item";
+                    const note = defect.note ? defect.note.toLowerCase() : "";
+                    const room = defect.room || "Area Hotel";
+                    const floor = defect.floor || "L";
+                    
+                    let cause = `Penurunan kualitas fisik atau estetika pada komponen ${item.toLowerCase()} di area ${room} (Lantai ${floor}).`;
+                    let solution = `Lakukan pengecekan menyeluruh, perbaikan struktur/finishing, dan tes fungsional ulang.`;
+
+                    if (note.includes('fungus') || note.includes('jamur') || note.includes('noda') || note.includes('bocor') || note.includes('leaking')) {
+                        cause = `Terdeteksi masalah kelembapan tinggi, sirkulasi udara kurang, atau rembesan pipa di area ${room}.`;
+                        solution = `1. Bersihkan area dari jamur menggunakan cairan fungisida khusus.\n2. Periksa sumber kebocoran dari pipa terdekat.\n3. Keringkan dan lakukan pengecekan ulang setelah selesai.`;
+                    } else if (note.includes('pecah') || note.includes('sobek') || note.includes('hancur') || note.includes('retak') || note.includes('kelupas')) {
+                        cause = `Kerusakan material fisik pada ${item.toLowerCase()} akibat usia pakai, gesekan, atau benturan.`;
+                        solution = `1. Ganti material yang rusak dengan unit baru sesuai standar hotel.\n2. Lakukan penambalan atau perapihan nat/sambungan secara presisi.`;
+                    } else if (note.includes('mati') || note.includes('korslet') || note.includes('biru') || note.includes('elektrik')) {
+                        cause = `Gangguan pada sambungan kabel, modul kelistrikan, atau tegangan daya unit di ${room}.`;
+                        solution = `1. Periksa arus listrik dengan multimeter.\n2. Perbaiki jalur perkabelan atau ganti modul elektrikal yang bermasalah.`;
+                    }
+
+                    const analysisText = `Analisis Engineering & Property (Erian AI):\n` +
+                        `• Lokasi: ${room} (Lantai ${floor})\n` +
+                        `• Kategori: ${item}\n` +
+                        `• Catatan Lapangan: "${defect.note || '-'}"\n\n` +
+                        `🔍 Hipotesis Akar Masalah:\n` +
+                        `• ${cause}\n\n` +
+                        `🛠️ Rekomendasi Solusi Teknis:\n` +
+                        `${solution}`;
+
+                    setAiAnalysisResult(analysisText);
+                    setIsAnalyzing(false);
+                }, 400);
+            };
+
+            const exportToExcelTable = () => {
+                const headers = ["No. Record", "Date", "Floor", "Room", "Item", "Reporter", "Dept", "Eng Status", "Eng PIC", "HK Status", "Finding Note"];
+                
+                let htmlTable = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">`;
+                htmlTable += `<head><meta charset="utf-8"/><style>`;
+                htmlTable += `table { border-collapse: collapse; width: 100%; font-family: Calibri, sans-serif; font-size: 11pt; }`;
+                htmlTable += `th { background-color: #333b44; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 0.5pt solid #000000; padding: 6px; }`;
+                htmlTable += `td { border: 0.5pt solid #d9d9d9; vertical-align: middle; padding: 5px; }`;
+                htmlTable += `</style></head><body>`;
+                
+                htmlTable += `<table>`;
+                htmlTable += `<tr>`;
+                headers.forEach(h => { htmlTable += `<th>${h}</th>`; });
+                htmlTable += `</tr>`;
+
+                filteredData.forEach(d => {
+                    htmlTable += `<tr>`;
+                    htmlTable += `<td>${d.recordNo}</td>`;
+                    htmlTable += `<td>${d.date || ''}</td>`;
+                    htmlTable += `<td>${d.floor}</td>`;
+                    htmlTable += `<td>${d.room}</td>`;
+                    htmlTable += `<td>${d.item}</td>`;
+                    htmlTable += `<td>${d.name}</td>`;
+                    htmlTable += `<td>${d.dept}</td>`;
+                    htmlTable += `<td>${d.statusEng}</td>`;
+                    htmlTable += `<td>${d.picEng || ''}</td>`;
+                    htmlTable += `<td>${d.checkHK}</td>`;
+                    htmlTable += `<td>${d.note || ''}</td>`;
+                    htmlTable += `</tr>`;
+                });
+
+                htmlTable += `</table></body></html>`;
+
+                const blob = new Blob([htmlTable], { type: 'application/vnd.ms-excel' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `Erian_Defect_Report_${new Date().toISOString().split('T')[0]}.xls`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            const totalFindings = defects.length;
+            const openPendingCount = defects.filter(d => d.statusEng === 'Open' || d.checkHK === 'Pending' || d.checkHK === 'Not Completed').length;
+            const doneProgressCount = defects.filter(d => d.statusEng === 'Done Progress').length;
+            const verifiedCleanCount = defects.filter(d => d.checkHK === 'Verified').length;
+
+            const filteredData = defects.filter(d => {
+                const matchSearch = d.room.toLowerCase().includes(search.toLowerCase()) || 
+                                      d.item.toLowerCase().includes(search.toLowerCase()) || 
+                                      d.name.toLowerCase().includes(search.toLowerCase());
+                const matchStatus = filterStatus ? d.statusEng === filterStatus : true;
+                const matchFloor = filterFloor ? d.floor === filterFloor : true;
+                
+                let matchDate = true;
+                if (startDate && d.date && d.date < startDate) matchDate = false;
+                if (endDate && d.date && d.date > endDate) matchDate = false;
+
+                let matchCard = true;
+                if (activeFilterCard === 'Open / Pending') {
+                    matchCard = d.statusEng === 'Open' || d.checkHK === 'Pending' || d.checkHK === 'Not Completed';
+                } else if (activeFilterCard === 'Done Progress') {
+                    matchCard = d.statusEng === 'Done Progress';
+                } else if (activeFilterCard === 'Verified Clean') {
+                    matchCard = d.checkHK === 'Verified';
+                }
+
+                return matchSearch && matchStatus && matchFloor && matchDate && matchCard;
+            });
+
+            if (!currentUser) {
+                return (
+                    <div className="min-h-screen bg-[#cbd5e1] flex items-center justify-center p-4">
+                        <div className="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl text-center space-y-6 border border-slate-300">
+                            <div className="w-16 h-16 bg-[#333b44] rounded-2xl flex items-center justify-center mx-auto shadow-md">
+                                <i className="fa-solid fa-building text-white text-2xl"></i>
+                            </div>
+                            <div>
+                                <h1 className="text-xl font-bold text-slate-800 tracking-wide uppercase">Erian Defect Tracker</h1>
+                                <p className="text-xs text-slate-500 mt-1">Masukkan Email dan Password resmi Anda untuk masuk.</p>
+                            </div>
+
+                            {authError && (
+                                <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-xs flex items-start gap-2 text-left">
+                                    <i className="fa-solid fa-circle-exclamation text-red-500 mt-0.5"></i>
+                                    <span>{authError}</span>
+                                </div>
+                            )}
+
+                            <form onSubmit={handleLogin} className="space-y-4 text-left">
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Email HOD / Staff</label>
+                                    <div className="relative">
+                                        <i className="fa-solid fa-envelope absolute left-3 top-3.5 text-slate-400"></i>
+                                        <input 
+                                            type="email" 
+                                            value={authEmailInput} 
+                                            onChange={(e) => setAuthEmailInput(e.target.value)} 
+                                            placeholder="contoh: zainalidris22@gmail.com" 
+                                            required
+                                            className="w-full pl-9 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-slate-500 bg-white"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Password</label>
+                                    <div className="relative">
+                                        <i className="fa-solid fa-lock absolute left-3 top-3.5 text-slate-400"></i>
+                                        <input 
+                                            type={showLoginPass ? "text" : "password"} 
+                                            value={authPasswordInput} 
+                                            onChange={(e) => setAuthPasswordInput(e.target.value)} 
+                                            placeholder="Masukkan password Anda" 
+                                            required
+                                            className="w-full pl-9 pr-10 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-slate-500 bg-white"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowLoginPass(!showLoginPass)}
+                                            className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+                                        >
+                                            <i className={`fa-solid ${showLoginPass ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    className="w-full bg-[#333b44] hover:bg-[#22272e] text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition shadow-lg cursor-pointer"
+                                >
+                                    <i className="fa-solid fa-right-to-bracket"></i>
+                                    <span>Masuk Aplikasi</span>
+                                </button>
+                            </form>
+                            
+                            <div className="text-left bg-slate-50 p-3 rounded-xl border border-slate-200 text-[11px] text-slate-600 space-y-1">
+                                <p className="font-bold text-slate-700">Contoh Akun Akses:</p>
+                                <p>• FO: zainalidris22@gmail.com / pass: zainal123</p>
+                                <p>• HK: SarasAndini89@gmail.com / pass: saras123</p>
+                                <p>• Eng: budihartanto23@gmail.com / pass: budi123</p>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen bg-[#cbd5e1] text-slate-800 font-sans pb-10">
+                    
+                    {/* Header Bar */}
+                    <header className="bg-[#333b44] text-white shadow-md sticky top-0 z-40 border-b border-[#47515e]">
+                        <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+                            <div className="flex items-center space-x-3">
+                                <div className="bg-[#47515e] p-2 rounded-xl text-slate-200 font-bold flex items-center justify-center border border-slate-500 shadow-inner">
+                                    <i className="fa-solid fa-building text-lg"></i>
+                                </div>
+                                <div>
+                                    <h1 className="font-bold text-base tracking-wide uppercase text-slate-100 flex items-center gap-2">
+                                        ERIAN DEFECT FIND OUT
+                                        <span className="bg-[#22272e] text-slate-300 text-[10px] px-2 py-0.5 rounded-full border border-slate-600">EPF System</span>
+                                    </h1>
+                                    <p className="text-xs text-slate-400">
+                                        Logged in as: <span className="text-slate-200 font-medium">{currentUser.name} ({currentUser.dept})</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="bg-[#22272e] text-slate-300 text-xs px-3 py-1.5 rounded-lg border border-slate-600 hidden sm:flex items-center gap-1.5">
+                                    <i className="fa-solid fa-shield-check text-emerald-400"></i> 
+                                    Role: {currentUser.dept}
+                                </span>
+                                <button
+                                    onClick={() => setChangePassOpen(true)}
+                                    className="bg-slate-700 hover:bg-slate-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition cursor-pointer border border-slate-600"
+                                >
+                                    <i className="fa-solid fa-key text-amber-400"></i>
+                                    <span className="hidden md:inline">Ganti Password</span>
+                                </button>
+                                <button
+                                    onClick={handleLogout}
+                                    className="bg-red-600/80 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition cursor-pointer border border-red-500"
+                                >
+                                    <i className="fa-solid fa-right-from-bracket"></i>
+                                    <span>Logout</span>
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Banner */}
+                    <div className="max-w-7xl mx-auto px-4 pt-6 pb-2">
+                        <div className="bg-[#2a3038] border border-slate-500 p-6 rounded-xl shadow-lg flex flex-col sm:flex-row justify-between items-center gap-4">
+                            <div className="flex flex-col items-center sm:items-start text-center sm:text-left z-10 w-full pl-2">
+                                <h2 className="font-bold text-white text-2xl tracking-wide font-sans">ERIAN HOTEL</h2>
+                                <p className="text-sm text-slate-300 font-medium tracking-wide">Sistem Pelaporan dan Monitoring Kerusakan Fasilitas (Defect Tracker)</p>
+                            </div>
+                            
+                            <div className="z-10 mt-4 sm:mt-0 whitespace-nowrap flex flex-wrap gap-3 justify-center sm:justify-end">
+                                <button 
+                                    onClick={() => setQuickUpdateOpen(true)}
+                                    className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-bold text-sm flex items-center space-x-2 transition shadow-lg border border-blue-500/50 cursor-pointer"
+                                >
+                                    <i className="fa-solid fa-circle-check"></i>
+                                    <span>Update Defect</span>
+                                </button>
+
+                                {currentUser.dept !== 'Eng' && (
+                                    <button 
+                                        onClick={() => setIsModalOpen(true)}
+                                        className="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2.5 rounded-xl font-bold text-sm flex items-center space-x-2 transition shadow-lg border border-amber-500/50 cursor-pointer"
+                                    >
+                                        <i className="fa-solid fa-circle-plus"></i>
+                                        <span>Submit Report</span>
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <main className="max-w-7xl mx-auto px-4 py-4">
+                        {/* Statistics Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                            <div onClick={() => setActiveFilterCard('Total')} className={`p-4 rounded-xl shadow border cursor-pointer transition-all ${activeFilterCard === 'Total' ? 'bg-white border-red-600 ring-2 ring-red-300' : 'bg-white border-slate-200 hover:bg-red-50'}`}>
+                                <p className="text-xs text-red-600 font-bold uppercase">TOTAL FINDING</p>
+                                <h3 className="text-2xl font-bold text-red-600 mt-1">{totalFindings}</h3>
+                            </div>
+                            <div onClick={() => setActiveFilterCard('Open / Pending')} className={`p-4 rounded-xl shadow border cursor-pointer transition-all ${activeFilterCard === 'Open / Pending' ? 'bg-white border-amber-500 ring-2 ring-amber-300' : 'bg-white border-slate-200 hover:bg-amber-50'}`}>
+                                <p className="text-xs text-amber-600 font-bold uppercase">OPEN / PENDING</p>
+                                <h3 className="text-2xl font-bold text-amber-600 mt-1">{openPendingCount}</h3>
+                            </div>
+                            <div onClick={() => setActiveFilterCard('Done Progress')} className={`p-4 rounded-xl shadow border cursor-pointer transition-all ${activeFilterCard === 'Done Progress' ? 'bg-white border-blue-400 ring-2 ring-blue-200' : 'bg-white border-slate-200 hover:bg-blue-50'}`}>
+                                <p className="text-xs text-blue-600 font-bold uppercase">Done Progress (Eng)</p>
+                                <h3 className="text-2xl font-bold text-blue-600 mt-1">{doneProgressCount}</h3>
+                            </div>
+                            <div onClick={() => setActiveFilterCard('Verified Clean')} className={`p-4 rounded-xl shadow border cursor-pointer transition-all ${activeFilterCard === 'Verified Clean' ? 'bg-white border-emerald-400 ring-2 ring-emerald-200' : 'bg-white border-slate-200 hover:bg-emerald-50'}`}>
+                                <p className="text-xs text-emerald-600 font-bold uppercase">Verified Clean (HK)</p>
+                                <h3 className="text-2xl font-bold text-emerald-600 mt-1">{verifiedCleanCount}</h3>
+                            </div>
+                        </div>
+
+                        {/* Filter and Search Bar */}
+                        <div className="bg-white p-4 rounded-xl shadow border border-slate-200 mb-6 flex flex-col gap-4">
+                            <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+                                <div className="w-full md:w-1/3 relative">
+                                    <i className="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-slate-400"></i>
+                                    <input 
+                                        type="text" 
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                        placeholder="Cari ruang, item, atau pelapor..." 
+                                        className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:border-slate-500"
+                                    />
+                                </div>
+                                
+                                <div className="flex flex-wrap gap-2 w-full md:w-auto items-center">
+                                    <select 
+                                        value={filterStatus} 
+                                        onChange={(e) => setFilterStatus(e.target.value)}
+                                        className="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none cursor-pointer"
+                                    >
+                                        <option value="">Semua Status</option>
+                                        <option value="Open">Open</option>
+                                        <option value="Done Progress">Done Progress</option>
+                                        <option value="Resolved">Resolved</option>
+                                    </select>
+                                    <select 
+                                        value={filterFloor} 
+                                        onChange={(e) => setFilterFloor(e.target.value)}
+                                        className="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none cursor-pointer"
+                                    >
+                                        <option value="">Semua Area</option>
+                                        {Array.from(new Set(locationMapping.map(loc => loc.floor))).map(f => (
+                                            <option key={f} value={f}>{f === 'L' ? 'Lobby (L)' : `Lantai ${f}`}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span className="text-xs font-semibold text-slate-500 uppercase">Periode Tanggal:</span>
+                                    <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-300 px-3 py-1.5 rounded-lg text-xs">
+                                        <input 
+                                            type="date" 
+                                            value={startDate} 
+                                            onChange={(e) => setStartDate(e.target.value)} 
+                                            className="bg-transparent focus:outline-none text-slate-700 cursor-pointer" 
+                                        />
+                                        <span className="text-slate-400">s/d</span>
+                                        <input 
+                                            type="date" 
+                                            value={endDate} 
+                                            onChange={(e) => setEndDate(e.target.value)} 
+                                            className="bg-transparent focus:outline-none text-slate-700 cursor-pointer" 
+                                        />
+                                        {(startDate || endDate) && (
+                                            <button onClick={() => {setStartDate(''); setEndDate('');}} className="text-red-500 font-bold ml-1 px-1 hover:bg-red-50 rounded cursor-pointer">✕</button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <button 
+                                    onClick={exportToExcelTable}
+                                    className="bg-emerald-700 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center space-x-2 transition shadow border border-emerald-500/50 cursor-pointer"
+                                >
+                                    <i className="fa-solid fa-file-excel"></i>
+                                    <span>Export Report (Excel)</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Data Table */}
+                        <div className="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse text-sm">
+                                    <thead>
+                                        <tr className="bg-[#333b44] text-slate-100 font-semibold border-b border-slate-600">
+                                            <th className="p-3">No. Record</th>
+                                            <th className="p-3">Foto</th>
+                                            <th className="p-3">Floor / Area</th>
+                                            <th className="p-3">Item Kerusakan</th>
+                                            <th className="p-3">Pelapor (HOD)</th>
+                                            <th className="p-3">Status (Eng)</th>
+                                            <th className="p-3">Check (HK)</th>
+                                            <th className="p-3 text-center">AI Assist</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-200">
+                                        {filteredData.length > 0 ? filteredData.map((item) => (
+                                            <tr key={item.id} className="hover:bg-slate-50 transition">
+                                                <td className="p-3 font-mono text-sm font-bold text-[#333b44]">
+                                                    {item.recordNo}
+                                                    {item.date && <div className="text-[10px] text-slate-400 font-normal">{item.date}</div>}
+                                                </td>
+                                                <td className="p-3">
+                                                    {item.photo ? (
+                                                        <div 
+                                                            className="relative w-12 h-12 cursor-pointer group"
+                                                            onClick={() => setEnlargedPhoto(item.photo)}
+                                                            title="Klik untuk perbesar"
+                                                        >
+                                                            <img src={item.photo} alt="Defect" className="w-full h-full object-cover rounded-lg border border-slate-300 shadow-sm transition group-hover:opacity-60" />
+                                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                                                                <i className="fa-solid fa-expand text-slate-800 drop-shadow-md"></i>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 text-[10px] font-medium text-center p-1 leading-tight border border-slate-200">No Foto</div>
+                                                    )}
+                                                </td>
+                                                <td className="p-3 font-medium text-slate-800">
+                                                    {item.floor === 'L' ? 'Lobby (L)' : item.floor === '2' ? 'Lv.2' : item.floor === '3' ? 'Lv.3' : item.floor === '9' ? 'Lv.9' : `Lantai ${item.floor}`}
+                                                    <br /><span className="text-xs text-slate-500 font-normal">{item.room}</span>
+                                                </td>
+                                                <td className="p-3 text-slate-700">
+                                                    <span className="font-semibold text-slate-900">{item.item}</span>
+                                                    <br /><span className="text-xs text-slate-500">{item.note || '-'}</span>
+                                                </td>
+                                                <td className="p-3 text-slate-600">
+                                                    {item.name}
+                                                    <br /><span className="bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded text-[10px] font-bold">{item.dept}</span>
+                                                </td>
+                                                <td className="p-3">
+                                                    <select 
+                                                        value={item.statusEng} 
+                                                        onChange={(e) => updateEngStatus(item.id, e.target.value)}
+                                                        disabled={currentUser.dept !== 'Eng'}
+                                                        className={`text-xs p-1.5 border rounded font-medium focus:outline-none w-full ${currentUser.dept === 'Eng' ? 'bg-blue-50 border-blue-300 text-blue-800 cursor-pointer' : 'bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed'}`}
+                                                    >
+                                                        <option value="Open">Open</option>
+                                                        <option value="Done Progress">Done Progress</option>
+                                                        <option value="Resolved">Resolved</option>
+                                                    </select>
+                                                    {item.picEng && (
+                                                        <div className="mt-1 text-[10px] text-blue-600 font-semibold bg-blue-50 px-1 py-0.5 rounded border border-blue-100 w-max">PIC: {item.picEng}</div>
+                                                    )}
+                                                </td>
+                                                <td className="p-3">
+                                                    <select 
+                                                        value={item.checkHK} 
+                                                        onChange={(e) => updateHkStatus(item.id, e.target.value)}
+                                                        disabled={currentUser.dept !== 'HK'}
+                                                        className={`text-xs p-1.5 border rounded font-medium focus:outline-none w-full ${currentUser.dept === 'HK' ? 'bg-emerald-50 border-emerald-300 text-emerald-800 cursor-pointer' : 'bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed'}`}
+                                                    >
+                                                        <option value="Pending">Pending</option>
+                                                        <option value="Not Completed">Not Completed</option>
+                                                        <option value="Verified">Verified</option>
+                                                    </select>
+                                                </td>
+                                                <td className="p-3 text-center">
+                                                    <button onClick={() => runAiAnalysis(item)} className="bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-300 px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 mx-auto transition shadow-sm cursor-pointer">
+                                                        <i className="fa-solid fa-wand-magic-sparkles text-amber-600"></i><span>Analyze</span>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        )) : (
+                                            <tr><td colSpan="8" className="p-6 text-center text-slate-500">Tidak ada data defect yang ditemukan.</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </main>
+
+                    {/* Modal Submit Report */}
+                    {isModalOpen && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+                                <div className="flex justify-between items-center mb-4 border-b pb-3">
+                                    <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                                        <i className="fa-solid fa-circle-plus text-[#333b44]"></i> Submit Report Defect
+                                    </h3>
+                                    <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 font-bold cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
+                                </div>
+                                
+                                <div className="bg-slate-100 border border-slate-300 px-4 py-2.5 rounded-lg mb-4 flex justify-between items-center shadow-sm">
+                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">No. Record Tiket Baru:</span>
+                                    <span className="font-mono text-xl font-bold text-[#333b44]">{nextFormattedRecordNo}</span>
+                                </div>
+
+                                <form onSubmit={handleSubmit} className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Pilih Lantai / Area</label>
+                                            <select value={formFloor} onChange={handleFloorChange} className="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none font-medium cursor-pointer">
+                                                {Array.from(new Set(locationMapping.map(loc => loc.floor))).map(f => (
+                                                    <option key={f} value={f}>{f === 'L' ? 'Lobby (L)' : `Lantai ${f}`}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Ruangan / Lokasi</label>
+                                            <select value={formRoom} onChange={(e) => setFormRoom(e.target.value)} className="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none font-medium cursor-pointer">
+                                                {availableRooms.map((loc, idx) => <option key={idx} value={loc.room}>{loc.room}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Kategori Kerusakan</label>
+                                        <select value={formItem} onChange={(e) => setFormItem(e.target.value)} className="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none cursor-pointer">
+                                            {itemList.map((item, idx) => <option key={idx} value={item}>{item}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 grid grid-cols-2 gap-2 text-xs">
+                                        <div><span className="text-slate-500 block uppercase font-bold">Pelapor</span><span className="font-semibold text-slate-900">{currentUser.name}</span></div>
+                                        <div><span className="text-slate-500 block uppercase font-bold">Departemen</span><span className="font-semibold text-slate-900">{currentUser.dept}</span></div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Detail Temuan</label>
+                                        <textarea rows="3" value={formNote} onChange={(e) => setFormNote(e.target.value)} placeholder="Jelaskan detail kerusakan..." required className="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-slate-500"></textarea>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Lampirkan Foto</label>
+                                        <div className="flex items-center space-x-3">
+                                            <label className="cursor-pointer bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition">
+                                                <i className="fa-solid fa-camera"></i><span>Pilih Foto</span>
+                                                <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+                                            </label>
+                                            <span className="text-xs text-slate-500">{formPhoto ? 'Foto siap dilampirkan ✓' : 'Belum ada foto'}</span>
+                                        </div>
+                                        {formPhoto && <div className="mt-2"><img src={formPhoto} alt="Preview" className="w-20 h-20 object-cover rounded-lg border border-slate-300 shadow-sm" /></div>}
+                                    </div>
+                                    <div className="flex justify-end space-x-2 pt-2 border-t">
+                                        <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 cursor-pointer">Batal</button>
+                                        <button type="submit" className="px-4 py-2 bg-[#333b44] hover:bg-[#22272e] text-white rounded-lg text-sm font-medium shadow-sm transition cursor-pointer">Kirim Report</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Modal Ganti Password */}
+                    {changePassOpen && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+                                <div className="flex justify-between items-center mb-4 border-b pb-3">
+                                    <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                                        <i className="fa-solid fa-key text-amber-600"></i> Ganti Password Akun
+                                    </h3>
+                                    <button onClick={() => { setChangePassOpen(false); setPassMsg({text: '', type: ''}); }} className="text-slate-400 hover:text-slate-600 font-bold cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
+                                </div>
+
+                                {passMsg.text && (
+                                    <div className={`p-3 rounded-lg text-xs mb-4 ${passMsg.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`}>
+                                        {passMsg.text}
+                                    </div>
+                                )}
+
+                                <form onSubmit={handleChangePasswordSubmit} className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Password Lama</label>
+                                        <div className="relative">
+                                            <input 
+                                                type={showOldPass ? "text" : "password"} 
+                                                value={oldPassInput} 
+                                                onChange={(e) => setOldPassInput(e.target.value)} 
+                                                placeholder="Masukkan password saat ini" 
+                                                required
+                                                className="w-full p-2.5 pr-10 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-slate-500"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowOldPass(!showOldPass)}
+                                                className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+                                            >
+                                                <i className={`fa-solid ${showOldPass ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Password Baru</label>
+                                        <div className="relative">
+                                            <input 
+                                                type={showNewPass ? "text" : "password"} 
+                                                value={newPassInput} 
+                                                onChange={(e) => setNewPassInput(e.target.value)} 
+                                                placeholder="Minimal 6 karakter" 
+                                                required
+                                                className="w-full p-2.5 pr-10 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-slate-500"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowNewPass(!showNewPass)}
+                                                className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+                                            >
+                                                <i className={`fa-solid ${showNewPass ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Konfirmasi Password Baru</label>
+                                        <div className="relative">
+                                            <input 
+                                                type={showConfirmPass ? "text" : "password"} 
+                                                value={confirmPassInput} 
+                                                onChange={(e) => setConfirmPassInput(e.target.value)} 
+                                                placeholder="Ulangi password baru" 
+                                                required
+                                                className="w-full p-2.5 pr-10 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-slate-500"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowConfirmPass(!showConfirmPass)}
+                                                className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+                                            >
+                                                <i className={`fa-solid ${showConfirmPass ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-end space-x-2 pt-2 border-t">
+                                        <button 
+                                            type="button" 
+                                            onClick={() => { setChangePassOpen(false); setPassMsg({text: '', type: ''}); }} 
+                                            className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 cursor-pointer"
+                                        >
+                                            Batal
+                                        </button>
+                                        <button 
+                                            type="submit" 
+                                            className="px-4 py-2 bg-[#333b44] hover:bg-[#22272e] text-white rounded-lg text-sm font-medium shadow-sm transition cursor-pointer"
+                                        >
+                                            Simpan Password
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Modal AI Assist */}
+                    {aiModalOpen && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+                                <div className="flex justify-between items-center mb-4 border-b pb-3">
+                                    <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                                        <i className="fa-solid fa-wand-magic-sparkles text-amber-600"></i> Erian AI Assistant
+                                    </h3>
+                                    <button onClick={() => setAiModalOpen(false)} className="text-slate-400 hover:text-slate-600 font-bold cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
+                                </div>
+                                {isAnalyzing ? (
+                                    <div className="py-10 text-center space-y-3">
+                                        <div className="w-8 h-8 border-4 border-slate-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                                        <p className="text-sm text-slate-600 font-medium">Menganalisis spesifik temuan kerusakan...</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-sm text-slate-800 whitespace-pre-line leading-relaxed font-sans">{aiAnalysisResult}</div>
+                                        <button onClick={() => setAiModalOpen(false)} className="w-full bg-[#333b44] hover:bg-[#22272e] text-white py-2 rounded-lg text-sm font-medium transition shadow-sm cursor-pointer">Tutup</button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Modal Zoom Foto */}
+                    {enlargedPhoto && (
+                        <div className="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center z-[60] p-4" onClick={() => setEnlargedPhoto(null)}>
+                            <div className="relative max-w-5xl max-h-[90vh] flex flex-col items-center animate-in fade-in zoom-in duration-200">
+                                <button className="absolute -top-12 right-0 text-white hover:text-slate-300 font-bold flex items-center gap-2 bg-slate-800/60 px-4 py-2 rounded-full transition cursor-pointer" onClick={() => setEnlargedPhoto(null)}>
+                                    <i className="fa-solid fa-xmark"></i> Tutup Foto
+                                </button>
+                                <img src={enlargedPhoto} alt="Enlarged Defect" className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl border-2 border-slate-500 bg-white" onClick={(e) => e.stopPropagation()} />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Modal Quick Update Ticket */}
+                    {quickUpdateOpen && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+                                <div className="flex justify-between items-center mb-4 border-b pb-3">
+                                    <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                                        <i className={`fa-solid fa-circle-check ${currentUser.dept === 'Eng' ? 'text-blue-600' : 'text-emerald-600'}`}></i> 
+                                        Update Defect (Berdasarkan No. Tiket)
+                                    </h3>
+                                    <button onClick={() => {setQuickUpdateOpen(false); setQuickTicketId('');}} className="text-slate-400 hover:text-slate-600 font-bold cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
+                                </div>
+                                
+                                <form onSubmit={handleQuickUpdateSubmit} className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">
+                                            Pilih Nomor Tiket (No. Record)
+                                        </label>
+                                        <select 
+                                            value={quickTicketId} 
+                                            onChange={handleQuickTicketChange} 
+                                            className="w-full p-2.5 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:border-slate-500 font-medium cursor-pointer"
+                                            required
+                                        >
+                                            <option value="">-- Silakan Pilih Tiket --</option>
+                                            {defects
+                                                .filter(d => currentUser.dept === 'Eng' ? d.statusEng !== 'Resolved' : d.checkHK !== 'Verified')
+                                                .map(d => (
+                                                <option key={d.id} value={d.id}>{d.recordNo} - {d.item} ({d.room})</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {quickTicketId && defects.find(d => d.id === quickTicketId) && (
+                                        <div className="bg-slate-100 border border-slate-300 px-4 py-3 rounded-lg shadow-sm">
+                                            <div className="text-sm text-slate-700 space-y-1">
+                                                <p><span className="font-semibold text-slate-900">Pelapor:</span> {defects.find(d => d.id === quickTicketId).name}</p>
+                                                <p><span className="font-semibold text-slate-900">Lokasi:</span> {defects.find(d => d.id === quickTicketId).floor === 'L' ? 'Lobby' : `Lantai ${defects.find(d => d.id === quickTicketId).floor}`} - {defects.find(d => d.id === quickTicketId).room}</p>
+                                                <p><span className="font-semibold text-slate-900">Catatan:</span> {defects.find(d => d.id === quickTicketId).note || '-'}</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {quickTicketId && (
+                                        <div>
+                                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">
+                                                Update {currentUser.dept === 'Eng' ? 'Status Defect (Eng)' : 'Verifikasi Kebersihan (HK)'}
+                                            </label>
+                                            <select 
+                                                value={updateValue} 
+                                                onChange={(e) => setUpdateValue(e.target.value)} 
+                                                className={`w-full p-2.5 border rounded-lg text-sm bg-white focus:outline-none font-medium cursor-pointer ${currentUser.dept === 'Eng' ? 'border-blue-300 focus:border-blue-500' : 'border-emerald-300 focus:border-emerald-500'}`}
+                                            >
+                                                {currentUser.dept === 'Eng' ? (
+                                                    <>
+                                                        <option value="Open">Open</option>
+                                                        <option value="Done Progress">Done Progress</option>
+                                                        <option value="Resolved">Resolved</option>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <option value="Pending">Pending Check</option>
+                                                        <option value="Not Completed">Not Completed</option>
+                                                        <option value="Verified">Verified Clean</option>
+                                                    </>
+                                                )}
+                                            </select>
+                                        </div>
+                                    )}
+                                    
+                                    <div className="flex justify-end space-x-2 pt-4 border-t">
+                                        <button type="button" onClick={() => {setQuickUpdateOpen(false); setQuickTicketId('');}} className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 cursor-pointer">Batal</button>
+                                        <button type="submit" disabled={!quickTicketId} className={`px-4 py-2 text-white rounded-lg text-sm font-medium shadow-sm transition ${!quickTicketId ? 'bg-slate-400 cursor-not-allowed' : currentUser.dept === 'Eng' ? 'bg-blue-600 hover:bg-blue-700 cursor-pointer' : 'bg-emerald-600 hover:bg-emerald-700 cursor-pointer'}`}>
+                                            Simpan Update
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
         }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
     </script>
 </body>
 </html>
