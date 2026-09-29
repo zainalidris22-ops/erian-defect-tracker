@@ -1,724 +1,935 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Erian Defect Tracker</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <style>
-    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erian Defect Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #cbd5e1; }
+    </style>
 </head>
-<body class="bg-slate-100 text-slate-800 antialiased">
-  <div id="root"></div>
+<body class="bg-[#cbd5e1] text-slate-800 antialiased">
+    <div id="root"></div>
 
-  <script type="text/babel">
-    const { useState, useEffect } = React;
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
 
-    function App() {
-      const initialUserList = [
-        { email: "zainalidris22@gmail.com", pass: "zainal123", name: "Zainal (Asst. FOM)", dept: "FO" },
-        { email: "ameliatanuwidjaja@gmail.com", pass: "amel123", name: "Amel (Accounting Spv)", dept: "CA" },
-        { email: "aswansumarno@gmail.com", pass: "asep123", name: "Asep (FBM)", dept: "FBS" },
-        { email: "dv.bule81@gmail.com", pass: "devy123", name: "Devy (Owner Rep)", dept: "GA" },
-        { email: "indra.fraja@gmail.com", pass: "indra123", name: "Indra (Head Chef)", dept: "FBP" },
-        { email: "rdarst0907@gmail.com", pass: "resti123", name: "Resti (DOSM)", dept: "Sales" },
-        { email: "SarasAndini89@gmail.com", pass: "saras123", name: "Saras (HK SPV)", dept: "HK" },
-        { email: "budihartanto23@gmail.com", pass: "budi123", name: "Budi (Eng SPV)", dept: "Eng" },
-        { email: "rachmatIT23@gmail.com", pass: "rachmat123", name: "Rachmat (ITM)", dept: "IT" },
-        { email: "pipit.sopandian@gmail.com", pass: "pipit123", name: "Pipit (SM)", dept: "Sales" },
-        { email: "septianyuda47@gmail.com", pass: "septian123", name: "Septian (Asst.Bqt Manager)", dept: "FBS" }
-      ];
+        function App() {
+            const initialUserList = [
+                { email: "zainalidris22@gmail.com", pass: "zainal123", name: "Zainal (Asst. FOM)", dept: "FO" },
+                { email: "ameliatanuwidjaja@gmail.com", pass: "amel123", name: "Amel (Accounting Spv)", dept: "CA" },
+                { email: "aswansumarno@gmail.com", pass: "asep123", name: "Asep (FBM)", dept: "FBS" },
+                { email: "dv.bule81@gmail.com", pass: "devy123", name: "Devy (Owner Rep)", dept: "GA" },
+                { email: "indra.fraja@gmail.com", pass: "indra123", name: "Indra (Head Chef)", dept: "FBP" },
+                { email: "rdarst0907@gmail.com", pass: "resti123", name: "Resti (DOSM)", dept: "Sales" },
+                { email: "SarasAndini89@gmail.com", pass: "saras123", name: "Saras (HK SPV)", dept: "HK" },
+                { email: "budihartanto23@gmail.com", pass: "budi123", name: "Budi (Eng SPV)", dept: "Eng" },
+                { email: "rachmatIT23@gmail.com", pass: "rachmat123", name: "Rachmat (ITM)", dept: "IT" },
+                { email: "pipit.sopandian@gmail.com", pass: "pipit123", name: "Pipit (SM)", dept: "Sales" },
+                { email: "septianyuda47@gmail.com", pass: "septian123", name: "Septian (Asst.Bqt Manager)", dept: "FBS" }
+            ];
 
-      const [userList, setUserList] = useState(() => {
-        const saved = localStorage.getItem('erian_users_list');
-        return saved ? JSON.parse(saved) : initialUserList;
-      });
+            const [userList, setUserList] = useState(() => {
+                const saved = localStorage.getItem('erian_users_list');
+                return saved ? JSON.parse(saved) : initialUserList;
+            });
 
-      useEffect(() => {
-        localStorage.setItem('erian_users_list', JSON.stringify(userList));
-      }, [userList]);
+            useEffect(() => {
+                localStorage.setItem('erian_users_list', JSON.stringify(userList));
+            }, [userList]);
 
-      const [currentUser, setCurrentUser] = useState(() => {
-        const saved = localStorage.getItem('erian_current_user');
-        return saved ? JSON.parse(saved) : null;
-      });
+            const [currentUser, setCurrentUser] = useState(() => {
+                const saved = localStorage.getItem('erian_current_user');
+                return saved ? JSON.parse(saved) : null;
+            });
 
-      const [authEmailInput, setAuthEmailInput] = useState('');
-      const [authPasswordInput, setAuthPasswordInput] = useState('');
-      const [showLoginPass, setShowLoginPass] = useState(false);
-      const [authError, setAuthError] = useState('');
+            const [authEmailInput, setAuthEmailInput] = useState('');
+            const [authPasswordInput, setAuthPasswordInput] = useState('');
+            const [showLoginPass, setShowLoginPass] = useState(false);
+            const [authError, setAuthError] = useState('');
 
-      const [registerModalOpen, setRegisterModalOpen] = useState(false);
-      const [newStaffEmail, setNewStaffEmail] = useState('');
-      const [newStaffName, setNewStaffName] = useState('');
-      const [newStaffDept, setNewStaffDept] = useState('FO');
-      const [newStaffPass, setNewStaffPass] = useState('');
-      const [showNewStaffPass, setShowNewStaffPass] = useState(false);
-      const [regMsg, setRegMsg] = useState({ text: '', type: '' });
+            const [changePassOpen, setChangePassOpen] = useState(false);
+            const [oldPassInput, setOldPassInput] = useState('');
+            const [newPassInput, setNewPassInput] = useState('');
+            const [confirmPassInput, setConfirmPassInput] = useState('');
+            const [showOldPass, setShowOldPass] = useState(false);
+            const [showNewPass, setShowNewPass] = useState(false);
+            const [showConfirmPass, setShowConfirmPass] = useState(false);
+            const [passMsg, setPassMsg] = useState({ text: '', type: '' });
 
-      const [changePassOpen, setChangePassOpen] = useState(false);
-      const [oldPassInput, setOldPassInput] = useState('');
-      const [newPassInput, setNewPassInput] = useState('');
-      const [confirmPassInput, setConfirmPassInput] = useState('');
-      const [showOldPass, setShowOldPass] = useState(false);
-      const [showNewPass, setShowNewPass] = useState(false);
-      const [showConfirmPass, setShowConfirmPass] = useState(false);
-      const [passMsg, setPassMsg] = useState({ text: '', type: '' });
+            const [worstRoomModal, setWorstRoomModal] = useState(false);
+            const [currentPage, setCurrentPage] = useState(1);
+            const itemsPerPage = 20;
 
-      const initialDefects = [
-        { id: 7, recordNo: "EPF-000007", date: "2026-07-07", floor: "6", room: "613", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallboard Siku Pecah Pojok bawah", photo: "https://lh3.googleusercontent.com/d/1K4dZdN8oFIBn1CO5zrCRXLKrdip0WXK-", history: [] },
-        { id: 8, recordNo: "EPF-000008", date: "2026-07-07", floor: "L", room: "Parking Area", item: "Others", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "test", photo: "https://lh3.googleusercontent.com/d/16vKHYvO68pZNY_Gly0iHMDICWrw-TKPP", history: [] },
-        { id: 9, recordNo: "EPF-000009", date: "2026-07-07", floor: "6", room: "602", item: "Ceiling", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Ceiling bathroom fungus & wallpaper Fungus", photo: "https://lh3.googleusercontent.com/d/1Xhbdn4RkOf5l-yMI-Hu0rSU2bH9xui3c", history: [] },
-        { id: 10, recordNo: "EPF-000010", date: "2026-07-07", floor: "6", room: "608", item: "Bathroom", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Sealant bathroom fungus", photo: "https://lh3.googleusercontent.com/d/1U_SOybTl8_5_ma0YHpgjDuRkAOpGUX80", history: [] },
-        { id: 11, recordNo: "EPF-000011", date: "2026-07-07", floor: "6", room: "613", item: "Ceiling", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Coring depan wastafel noda leaking..cek in", photo: "https://lh3.googleusercontent.com/d/1bLtU2-Ksy4V2xqJb57d343nW138RoAVF", history: [] },
-        { id: 12, recordNo: "EPF-000012", date: "2026-07-07", floor: "6", room: "629", item: "Wall", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Fungus wallpaper di balik pintu, dan sambung", photo: "https://lh3.googleusercontent.com/d/1qZeqad0A_DOORRhAJcpIniI70As0TW0Z", history: [] },
-        { id: 13, recordNo: "EPF-000013", date: "2026-07-07", floor: "6", room: "611", item: "Wall", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper fungus dan sambungan mengelupas", photo: "https://lh3.googleusercontent.com/d/1jY1c_gyWUYdRBYcplPKiGMu6kjhqirbj", history: [] },
-        { id: 14, recordNo: "EPF-000014", date: "2026-07-04", floor: "4", room: "403", item: "Wall", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper atas bed retak.. sambungan wal", photo: "https://lh3.googleusercontent.com/d/1JM_gU8ozuzWRUT0-D7306uRI6zWDvarr", history: [] },
-        { id: 15, recordNo: "EPF-000015", date: "2026-07-04", floor: "4", room: "403", item: "Telephone / TV", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Tv biru", photo: "https://lh3.googleusercontent.com/d/1P7PScF3-Uhnr07TNAkdWLoFyg2ti4d6T", history: [] },
-        { id: 16, recordNo: "EPF-000016", date: "2026-07-04", floor: "4", room: "403", item: "Bathroom", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Hand shower mulai botak untuk kawatnya", photo: "https://lh3.googleusercontent.com/d/1hiipvu2clxV2EzL6tfldbJhFvYb22kaH", history: [] },
-        { id: 17, recordNo: "EPF-000017", date: "2026-07-04", floor: "4", room: "403", item: "Bathroom", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Nat tembok dekat kamar mandi bolong", photo: "https://lh3.googleusercontent.com/d/1QZDEiO_rPq919Ucr9Zlz7qr15hsVQXP7", history: [] },
-        { id: 18, recordNo: "EPF-000018", date: "2026-07-04", floor: "4", room: "403", item: "Bathroom", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Exhaust kamar mandi mati", photo: "", history: [] },
-        { id: 19, recordNo: "EPF-000019", date: "2026-07-04", floor: "4", room: "405", item: "Bathroom", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Nat wc berjamur, bagian bawah pinggirnya", photo: "https://lh3.googleusercontent.com/d/1MqHTpkRbsfVp9uagSkwFRwOeNkQANgjo", history: [] },
-        { id: 20, recordNo: "EPF-000020", date: "2026-07-04", floor: "4", room: "405", item: "Window", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Retak..", photo: "https://lh3.googleusercontent.com/d/1XiuwM8cw0C4lwqHxK7gwI5MES0kzILZ8", history: [] },
-        { id: 21, recordNo: "EPF-000021", date: "2026-07-04", floor: "4", room: "406", item: "Wall", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Kipas perlu.. sambungan terbuka..", photo: "https://lh3.googleusercontent.com/d/1cLORlnSDOK56YPNjRiLZN9aCiGY4Z1sQ", history: [] },
-        { id: 22, recordNo: "EPF-000022", date: "2026-07-05", floor: "5", room: "517", item: "Wall", name: "Rachmat (ITM)", dept: "IT", statusEng: "Open", picEng: "", checkHK: "Pending", note: "List kayu yg di tembok ada yg lepas", photo: "https://lh3.googleusercontent.com/d/1Y0eCihBEFe23HKGGCs8neSfQ9OoHUxIC", history: [] },
-        { id: 23, recordNo: "EPF-000023", date: "2026-07-05", floor: "5", room: "517", item: "Wall", name: "Rachmat (ITM)", dept: "IT", statusEng: "Open", picEng: "", checkHK: "Pending", note: "List kayu yg di tembok bagian bawah ada yg lepas", photo: "https://lh3.googleusercontent.com/d/1pbx-Z6UMhucH6P2U9Ov6P6W7k97KO-AG", history: [] },
-        { id: 24, recordNo: "EPF-000024", date: "2026-07-06", floor: "6", room: "613", item: "Bathroom", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Siku.. dinding area toilet Bolong.. perlu di Nat", photo: "https://lh3.googleusercontent.com/d/1rt25h2zQwQ26qS1DrV-IoKEypEhpodlS", history: [] },
-        { id: 25, recordNo: "EPF-000025", date: "2026-07-06", floor: "6", room: "609", item: "Wall", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Tembok siku.. area Toilet perlu di nat", photo: "https://lh3.googleusercontent.com/d/19sx-aViCrWe2f8s6-_RyvkkT70zeelAZ", history: [] },
-        { id: 26, recordNo: "EPF-000026", date: "2026-07-06", floor: "6", room: "610", item: "Bathroom", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Pojok Tembok Toilet. Bolong, Perlu di Nat.", photo: "https://lh3.googleusercontent.com/d/1jfpG0RhOa6Y6fxmmBDjLB8p7FfgqaXtz", history: [] },
-        { id: 27, recordNo: "EPF-000027", date: "2026-07-06", floor: "6", room: "611", item: "Electrical", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Exhaust Toilet Mati", photo: "https://lh3.googleusercontent.com/d/18RA2B4nGEspCu1JeCTkb1QhCQLlhO4g5", history: [] },
-        { id: 28, recordNo: "EPF-000028", date: "2026-07-06", floor: "6", room: "613", item: "Bathroom", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Pojok Kamar mandi.. Rembes dan tidak rapi", photo: "https://lh3.googleusercontent.com/d/1urAYNC5gKAPz3UVh5lOwlJWe-7ce35-z", history: [] },
-        { id: 29, recordNo: "EPF-000029", date: "2026-07-07", floor: "7", room: "701", item: "Ceiling", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "depan pintu 701 plumbing", photo: "https://lh3.googleusercontent.com/d/1PYduuHVLS9HFV-Oseah8-dIueeAknBeF", history: [] },
-        { id: 30, recordNo: "EPF-000030", date: "2026-07-07", floor: "7", room: "701", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper samping sofa lepas-lepas", photo: "https://lh3.googleusercontent.com/d/1XWcwjYJhrgB2mM76qGg9Tb2sX2jVp7uj", history: [] },
-        { id: 31, recordNo: "EPF-000031", date: "2026-07-07", floor: "7", room: "701", item: "Ceiling", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Dinding area ac cracking", photo: "https://lh3.googleusercontent.com/d/1BA4paMG6fBfqN-NMz0tpPlZOTmBpINn5", history: [] },
-        { id: 32, recordNo: "EPF-000032", date: "2026-07-07", floor: "7", room: "701", item: "Furniture", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "tempat sabun 701 perlu diganti", photo: "https://lh3.googleusercontent.com/d/1E4fIL-zKMA0EqWZwqnn7rOPW-c0YyKTJ", history: [] },
-        { id: 33, recordNo: "EPF-000033", date: "2026-07-07", floor: "7", room: "701", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Dinding pintu kamar mandi 701 perlu perapihan", photo: "https://lh3.googleusercontent.com/d/1l58vttmuGsblQNplElpaMnDk_BCn1jUq", history: [] },
-        { id: 34, recordNo: "EPF-000034", date: "2026-07-07", floor: "7", room: "Corridor Level 7", item: "Ceiling", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "ceiling depan 702 plumbing", photo: "https://lh3.googleusercontent.com/d/1UeRzDvUWWAUakPzKZdKJjuLND4G582u8", history: [] },
-        { id: 35, recordNo: "EPF-000035", date: "2026-07-07", floor: "7", room: "702", item: "Furniture", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallboard 702 perlu diganti", photo: "https://lh3.googleusercontent.com/d/1qUpIeZhNON_bG0XgYPU5jgfQt121PDYu", history: [] },
-        { id: 36, recordNo: "EPF-000036", date: "2026-07-07", floor: "7", room: "702", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "seperut kamar mandi 702 perlu dirapihkan", photo: "https://lh3.googleusercontent.com/d/1WvuxcTWFzznRNuImjUgQcA_PYvDEaKPb", history: [] },
-        { id: 37, recordNo: "EPF-000037", date: "2026-07-07", floor: "7", room: "703", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "seperut dinding kamar Mandi mulai mengelupas", photo: "https://lh3.googleusercontent.com/d/1fLKfOjIfoQfXk6Xg2wIk_qkNBq_xRq7-", history: [] },
-        { id: 38, recordNo: "EPF-000038", date: "2026-07-07", floor: "7", room: "704", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Dinding 704 dirapihkan", photo: "https://lh3.googleusercontent.com/d/1rLvKOA-n4yNDvyh9mTfb936bC8pIAnaM", history: [] },
-        { id: 39, recordNo: "EPF-000039", date: "2026-07-07", floor: "7", room: "Corridor Level 7", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Dinding corridor lv. 7 perlu perapihan", photo: "https://lh3.googleusercontent.com/d/1sUFZ2gW2MyPE33dVlFmPNWvjl-NGkyo3", history: [] },
-        { id: 40, recordNo: "EPF-000040", date: "2026-07-10", floor: "6", room: "604", item: "Window", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Kaca pecah & wallpaper fungus", photo: "https://lh3.googleusercontent.com/d/1VpEfyMehRTBfSSW35Ddas0xlvjQr-o-E", history: [] },
-        { id: 81, recordNo: "EPF-000081", date: "2026-07-24", floor: "3", room: "Erian 2", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Perapian dinding Erian 2", photo: "", history: [] },
-        { id: 82, recordNo: "EPF-000082", date: "2026-07-24", floor: "3", room: "Erian 4", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Perapian dinding Erian 4", photo: "", history: [] },
-        { id: 83, recordNo: "EPF-000083", date: "2026-07-24", floor: "3", room: "Erian 3", item: "Electrical", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Pengecekan saklar Erian 3", photo: "", history: [] },
-        { id: 84, recordNo: "EPF-000084", date: "2026-07-24", floor: "L", room: "Lobby", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Area lobby utama", photo: "", history: [] },
-        { id: 85, recordNo: "EPF-000085", date: "2026-07-24", floor: "L", room: "Lobby", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Finishing area lobby", photo: "", history: [] }
-      ];
+            const handleLogin = (e) => {
+                e.preventDefault();
+                const matched = userList.find(
+                    u => u.email.toLowerCase() === authEmailInput.trim().toLowerCase() && u.pass === authPasswordInput
+                );
+                if (matched) {
+                    setCurrentUser(matched);
+                    localStorage.setItem('erian_current_user', JSON.stringify(matched));
+                    setAuthError('');
+                    setAuthPasswordInput('');
+                } else {
+                    setAuthError('Email atau password salah.');
+                }
+            };
 
-      const [defects, setDefects] = useState(() => {
-        const saved = localStorage.getItem('erian_defects_data');
-        return saved ? JSON.parse(saved) : initialDefects;
-      });
+            const handleLogout = () => {
+                setCurrentUser(null);
+                localStorage.removeItem('erian_current_user');
+            };
 
-      useEffect(() => {
-        localStorage.setItem('erian_defects_data', JSON.stringify(defects));
-      }, [defects]);
+            const handleChangePasswordSubmit = (e) => {
+                e.preventDefault();
+                setPassMsg({ text: '', type: '' });
 
-      const [selectedFloor, setSelectedFloor] = useState('All');
-      const [selectedStatus, setSelectedStatus] = useState('All');
-      const [searchTerm, setSearchTerm] = useState('');
+                if (oldPassInput !== currentUser.pass) {
+                    setPassMsg({ text: 'Password lama tidak sesuai.', type: 'error' });
+                    return;
+                }
+                if (newPassInput.length < 6) {
+                    setPassMsg({ text: 'Password baru minimal harus 6 karakter.', type: 'error' });
+                    return;
+                }
+                if (newPassInput === oldPassInput) {
+                    setPassMsg({ text: 'Password baru tidak boleh sama dengan password lama.', type: 'error' });
+                    return;
+                }
+                if (newPassInput !== confirmPassInput) {
+                    setPassMsg({ text: 'Konfirmasi password baru tidak cocok.', type: 'error' });
+                    return;
+                }
 
-      const [floorInput, setFloorInput] = useState('6');
-      const [roomInput, setRoomInput] = useState('');
-      const [itemInput, setItemInput] = useState('Wall');
-      const [noteInput, setNoteInput] = useState('');
-      const [photoInput, setPhotoInput] = useState('');
-      const [formMsg, setFormMsg] = useState({ text: '', type: '' });
+                const updatedList = userList.map(u => u.email === currentUser.email ? { ...u, pass: newPassInput } : u);
+                setUserList(updatedList);
+                const updatedCurrent = { ...currentUser, pass: newPassInput };
+                setCurrentUser(updatedCurrent);
+                localStorage.setItem('erian_current_user', JSON.stringify(updatedCurrent));
 
-      const handleLogin = (e) => {
-        e.preventDefault();
-        const matched = userList.find(u => u.email.toLowerCase() === authEmailInput.trim().toLowerCase() && u.pass === authPasswordInput);
-        if (matched) {
-          setCurrentUser(matched);
-          localStorage.setItem('erian_current_user', JSON.stringify(matched));
-          setAuthError('');
-          setAuthPasswordInput('');
-        } else {
-          setAuthError('Email Google atau password salah.');
-        }
-      };
+                setPassMsg({ text: 'Password berhasil diperbarui!', type: 'success' });
+                setTimeout(() => {
+                    setChangePassOpen(false);
+                    setOldPassInput('');
+                    setNewPassInput('');
+                    setConfirmPassInput('');
+                    setPassMsg({ text: '', type: '' });
+                }, 1500);
+            };
 
-      const handleLogout = () => {
-        setCurrentUser(null);
-        localStorage.removeItem('erian_current_user');
-      };
+            const initialDefects = [
+                { id: 7, recordNo: "EPF-000007", date: "2026-07-07", floor: "6", room: "613", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallboard Siku Pecah Pojok bawah", photo: "https://lh3.googleusercontent.com/d/1K4dZdN8oFIBn1CO5zrCRXLKrdip0WXK-", history: [] },
+                { id: 8, recordNo: "EPF-000008", date: "2026-07-07", floor: "L", room: "Parking Area", item: "Others", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "test", photo: "https://lh3.googleusercontent.com/d/16vKHYvO68pZNY_Gly0iHMDICWrw-TKPP", history: [] },
+                { id: 9, recordNo: "EPF-000009", date: "2026-07-07", floor: "6", room: "602", item: "Ceiling", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Ceiling bathroom fungus & wallpaper Fungus", photo: "https://lh3.googleusercontent.com/d/1Xhbdn4RkOf5l-yMI-Hu0rSU2bH9xui3c", history: [] },
+                { id: 10, recordNo: "EPF-000010", date: "2026-07-07", floor: "6", room: "608", item: "Bathroom", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Sealant bathroom fungus", photo: "https://lh3.googleusercontent.com/d/1U_SOybTl8_5_ma0YHpgjDuRkAOpGUX80", history: [] },
+                { id: 11, recordNo: "EPF-000011", date: "2026-07-07", floor: "6", room: "613", item: "Ceiling", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Coring depan wastafel noda leaking..cek in", photo: "https://lh3.googleusercontent.com/d/1bLtU2-Ksy4V2xqJb57d343nW138RoAVF", history: [] },
+                { id: 12, recordNo: "EPF-000012", date: "2026-07-07", floor: "6", room: "629", item: "Wall", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Fungus wallpaper di balik pintu, dan sambung", photo: "https://lh3.googleusercontent.com/d/1qZeqad0A_DOORRhAJcpIniI70As0TW0Z", history: [] },
+                { id: 13, recordNo: "EPF-000013", date: "2026-07-07", floor: "6", room: "611", item: "Wall", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper fungus dan sambungan mengelupas", photo: "https://lh3.googleusercontent.com/d/1jY1c_gyWUYdRBYcplPKiGMu6kjhqirbj", history: [] },
+                { id: 14, recordNo: "EPF-000014", date: "2026-07-04", floor: "4", room: "403", item: "Wall", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper atas bed retak.. sambungan wal", photo: "https://lh3.googleusercontent.com/d/1JM_gU8ozuzWRUT0-D7306uRI6zWDvarr", history: [] },
+                { id: 15, recordNo: "EPF-000015", date: "2026-07-04", floor: "4", room: "403", item: "Telephone / TV", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Tv biru", photo: "https://lh3.googleusercontent.com/d/1P7PScF3-Uhnr07TNAkdWLoFyg2ti4d6T", history: [] },
+                { id: 16, recordNo: "EPF-000016", date: "2026-07-04", floor: "4", room: "403", item: "Bathroom", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Hand shower mulai botak untuk kawatnya", photo: "https://lh3.googleusercontent.com/d/1hiipvu2clxV2EzL6tfldbJhFvYb22kaH", history: [] },
+                { id: 17, recordNo: "EPF-000017", date: "2026-07-04", floor: "4", room: "403", item: "Bathroom", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Nat tembok dekat kamar mandi bolong", photo: "https://lh3.googleusercontent.com/d/1QZDEiO_rPq919Ucr9Zlz7qr15hsVQXP7", history: [] },
+                { id: 18, recordNo: "EPF-000018", date: "2026-07-04", floor: "4", room: "403", item: "Bathroom", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Exhaust kamar mandi mati", photo: "", history: [] },
+                { id: 19, recordNo: "EPF-000019", date: "2026-07-04", floor: "4", room: "405", item: "Bathroom", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Nat wc berjamur, bagian bawah pinggirnya", photo: "https://lh3.googleusercontent.com/d/1MqHTpkRbsfVp9uagSkwFRwOeNkQANgjo", history: [] },
+                { id: 20, recordNo: "EPF-000020", date: "2026-07-04", floor: "4", room: "405", item: "Window", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Retak..", photo: "https://lh3.googleusercontent.com/d/1XiuwM8cw0C4lwqHxK7gwI5MES0kzILZ8", history: [] },
+                { id: 21, recordNo: "EPF-000021", date: "2026-07-04", floor: "4", room: "406", item: "Wall", name: "Amel (Accounting Spv)", dept: "CA", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Kipas perlu.. sambungan terbuka..", photo: "https://lh3.googleusercontent.com/d/1cLORlnSDOK56YPNjRiLZN9aCiGY4Z1sQ", history: [] },
+                { id: 22, recordNo: "EPF-000022", date: "2026-07-05", floor: "5", room: "517", item: "Wall", name: "Rachmat (ITM)", dept: "IT", statusEng: "Open", picEng: "", checkHK: "Pending", note: "List kayu yg di tembok ada yg lepas", photo: "https://lh3.googleusercontent.com/d/1Y0eCihBEFe23HKGGCs8neSfQ9OoHUxIC", history: [] },
+                { id: 23, recordNo: "EPF-000023", date: "2026-07-05", floor: "5", room: "517", item: "Wall", name: "Rachmat (ITM)", dept: "IT", statusEng: "Open", picEng: "", checkHK: "Pending", note: "List kayu yg di tembok bagian bawah ada yg lepas", photo: "https://lh3.googleusercontent.com/d/1pbx-Z6UMhucH6P2U9Ov6P6W7k97KO-AG", history: [] },
+                { id: 24, recordNo: "EPF-000024", date: "2026-07-06", floor: "6", room: "613", item: "Bathroom", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Siku.. dinding area toilet Bolong.. perlu di Nat", photo: "https://lh3.googleusercontent.com/d/1rt25h2zQwQ26qS1DrV-IoKEypEhpodlS", history: [] },
+                { id: 25, recordNo: "EPF-000025", date: "2026-07-06", floor: "6", room: "609", item: "Wall", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Tembok siku.. area Toilet perlu di nat", photo: "https://lh3.googleusercontent.com/d/19sx-aViCrWe2f8s6-_RyvkkT70zeelAZ", history: [] },
+                { id: 26, recordNo: "EPF-000026", date: "2026-07-06", floor: "6", room: "610", item: "Bathroom", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Pojok Tembok Toilet. Bolong, Perlu di Nat.", photo: "https://lh3.googleusercontent.com/d/1jfpG0RhOa6Y6fxmmBDjLB8p7FfgqaXtz", history: [] },
+                { id: 27, recordNo: "EPF-000027", date: "2026-07-06", floor: "6", room: "611", item: "Electrical", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Exhaust Toilet Mati", photo: "https://lh3.googleusercontent.com/d/18RA2B4nGEspCu1JeCTkb1QhCQLlhO4g5", history: [] },
+                { id: 28, recordNo: "EPF-000028", date: "2026-07-06", floor: "6", room: "613", item: "Bathroom", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Pojok Kamar mandi.. Rembes dan tidak rapi", photo: "https://lh3.googleusercontent.com/d/1urAYNC5gKAPz3UVh5lOwlJWe-7ce35-z", history: [] },
+                { id: 29, recordNo: "EPF-000029", date: "2026-07-07", floor: "7", room: "701", item: "Ceiling", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "depan pintu 701 plumbing", photo: "https://lh3.googleusercontent.com/d/1PYduuHVLS9HFV-Oseah8-dIueeAknBeF", history: [] },
+                { id: 30, recordNo: "EPF-000030", date: "2026-07-07", floor: "7", room: "701", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper samping sofa lepas-lepas", photo: "https://lh3.googleusercontent.com/d/1XWcwjYJhrgB2mM76qGg9Tb2sX2jVp7uj", history: [] },
+                { id: 31, recordNo: "EPF-000031", date: "2026-07-07", floor: "7", room: "701", item: "Ceiling", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Dinding area ac cracking", photo: "https://lh3.googleusercontent.com/d/1BA4paMG6fBfqN-NMz0tpPlZOTmBpINn5", history: [] },
+                { id: 32, recordNo: "EPF-000032", date: "2026-07-07", floor: "7", room: "701", item: "Furniture", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "tempat sabun 701 perlu diganti", photo: "https://lh3.googleusercontent.com/d/1E4fIL-zKMA0EqWZwqnn7rOPW-c0YyKTJ", history: [] },
+                { id: 33, recordNo: "EPF-000033", date: "2026-07-07", floor: "7", room: "701", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Dinding pintu kamar mandi 701 perlu perapihan", photo: "https://lh3.googleusercontent.com/d/1l58vttmuGsblQNplElpaMnDk_BCn1jUq", history: [] },
+                { id: 34, recordNo: "EPF-000034", date: "2026-07-07", floor: "7", room: "Corridor Level 7", item: "Ceiling", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "ceiling depan 702 plumbing", photo: "https://lh3.googleusercontent.com/d/1UeRzDvUWWAUakPzKZdKJjuLND4G582u8", history: [] },
+                { id: 35, recordNo: "EPF-000035", date: "2026-07-07", floor: "7", room: "702", item: "Furniture", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallboard 702 perlu diganti", photo: "https://lh3.googleusercontent.com/d/1qUpIeZhNON_bG0XgYPU5jgfQt121PDYu", history: [] },
+                { id: 36, recordNo: "EPF-000036", date: "2026-07-07", floor: "7", room: "702", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "seperut kamar mandi 702 perlu dirapihkan", photo: "https://lh3.googleusercontent.com/d/1WvuxcTWFzznRNuImjUgQcA_PYvDEaKPb", history: [] },
+                { id: 37, recordNo: "EPF-000037", date: "2026-07-07", floor: "7", room: "703", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "seperut dinding kamar Mandi mulai mengelupas", photo: "https://lh3.googleusercontent.com/d/1fLKfOjIfoQfXk6Xg2wIk_qkNBq_xRq7-", history: [] },
+                { id: 38, recordNo: "EPF-000038", date: "2026-07-07", floor: "7", room: "704", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Dinding 704 dirapihkan", photo: "https://lh3.googleusercontent.com/d/1rLvKOA-n4yNDvyh9mTfb936bC8pIAnaM", history: [] },
+                { id: 39, recordNo: "EPF-000039", date: "2026-07-07", floor: "7", room: "Corridor Level 7", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Dinding corridor lv. 7 perlu perapihan", photo: "https://lh3.googleusercontent.com/d/1sUFZ2gW2MyPE33dVlFmPNWvjl-NGkyo3", history: [] },
+                { id: 40, recordNo: "EPF-000040", date: "2026-07-10", floor: "6", room: "604", item: "Window", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Kaca pecah & wallpaper fungus", photo: "https://lh3.googleusercontent.com/d/1VpEfyMehRTBfSSW35Ddas0xlvjQr-o-E", history: [] },
+                { id: 41, recordNo: "EPF-000041", date: "2026-07-10", floor: "6", room: "605", item: "Wall", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Sambungan wallpaper ngelupas", photo: "https://lh3.googleusercontent.com/d/193kex3DrvEuEiQHgG-0aQevYDeE2t1LD", history: [] },
+                { id: 42, recordNo: "EPF-000042", date: "2026-07-10", floor: "5", room: "501", item: "Wall", name: "Pipit (SM)", dept: "Sales", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Sobek", photo: "https://lh3.googleusercontent.com/d/1pXEMtzogp6jN2iu4xUsEWIHMHLTzeeIq", history: [] },
+                { id: 43, recordNo: "EPF-000043", date: "2026-07-10", floor: "5", room: "501", item: "Furniture", name: "Pipit (SM)", dept: "Sales", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Sofa spot", photo: "https://lh3.googleusercontent.com/d/1cNM_pbYZGl9MczfjuntprdAER1rJpgCq", history: [] },
+                { id: 44, recordNo: "EPF-000044", date: "2026-07-10", floor: "5", room: "501", item: "Furniture", name: "Pipit (SM)", dept: "Sales", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Curtain dirty", photo: "https://lh3.googleusercontent.com/d/1lXeZODhw_oTg9hK71GLXSIsOTyFyHHde", history: [] },
+                { id: 45, recordNo: "EPF-000045", date: "2026-07-10", floor: "5", room: "517", item: "Wall", name: "Pipit (SM)", dept: "Sales", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Fungus", photo: "https://lh3.googleusercontent.com/d/1Trog_ArmxzgtHiCO6Yz2Om8DJhcNEWfF", history: [] },
+                { id: 46, recordNo: "EPF-000046", date: "2026-07-10", floor: "4", room: "410", item: "Bathroom", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Nat bolong, plafon fungus/noda sepancuran", photo: "https://lh3.googleusercontent.com/d/1WycSuQVq0x8z5UeGCPGP_B2BmGJ9CeqC", history: [] },
+                { id: 47, recordNo: "EPF-000047", date: "2026-07-10", floor: "4", room: "411", item: "Bathroom", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sudah di corr, sunblast berjemur", photo: "https://lh3.googleusercontent.com/d/1ftdSoGi11l0h5nZN1HbPvQAxdon3C_ym", history: [] },
+                { id: 48, recordNo: "EPF-000048", date: "2026-07-10", floor: "4", room: "412", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "nat dinding toilet fungus, sambungan wallpaper ngelupas", photo: "https://lh3.googleusercontent.com/d/1yNazq8tzk6XEu50cgYrPghpRUTKf49bd", history: [] },
+                { id: 49, recordNo: "EPF-000049", date: "2026-07-10", floor: "4", room: "413", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "cermin fungus, nat dinding toilet hancur, wallpaper fungus", photo: "https://lh3.googleusercontent.com/d/1cgoFa86h47cQzpWTWh61poJ9zpkz1OXN", history: [] },
+                { id: 50, recordNo: "EPF-000050", date: "2026-07-10", floor: "4", room: "411", item: "Bathroom", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "plafon headshower renggang, wallpaper fungus", photo: "https://lh3.googleusercontent.com/d/1emc3D8upPgyUCILMyupF04zrGhNq5T2d", history: [] },
+                { id: 51, recordNo: "EPF-000051", date: "2026-07-10", floor: "4", room: "415", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "nat area toilet fungus, nat kamar mandi byk kotor/fungus", photo: "https://lh3.googleusercontent.com/d/1kuiE_K13Td_7gVRAuzE5TeL0Jimfrn65", history: [] },
+                { id: 52, recordNo: "EPF-000052", date: "2026-07-10", floor: "4", room: "416", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "wallpaper belang, plafon kamar mandi kotor/bekas bocor", photo: "https://lh3.googleusercontent.com/d/1MUawqf2S4RyX5o52cNjG9HCrqpoi_AfH", history: [] },
+                { id: 53, recordNo: "EPF-000053", date: "2026-07-10", floor: "4", room: "417", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "wallpaper bolong & ada yg terkelupas, plafon bernoda", photo: "https://lh3.googleusercontent.com/d/19gQj1kK5mjNECgDdmkYMv-YF-GdHrfuE", history: [] },
+                { id: 54, recordNo: "EPF-000054", date: "2026-07-10", floor: "5", room: "516", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sambungan wallpaper renggang, plafon deket jendela bocor", photo: "https://lh3.googleusercontent.com/d/1k3vK3qC21WwsOe7Du0Gj2cLTZqFUmIQE", history: [] },
+                { id: 55, recordNo: "EPF-000055", date: "2026-07-10", floor: "4", room: "Corridor Level 4", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sambungan wallpaper renggang, ceiling noda", photo: "https://lh3.googleusercontent.com/d/1gUd9yssIlE5w3WVLa_gzewqEtVaj3ljg", history: [] },
+                { id: 56, recordNo: "EPF-000056", date: "2026-07-10", floor: "5", room: "512", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sambungan wallpaper ngelupas, ceiling noda", photo: "https://lh3.googleusercontent.com/d/1out9q7Lv0uw5M-t_MgKf53kW1dFHrYzA", history: [] },
+                { id: 57, recordNo: "EPF-000057", date: "2026-07-10", floor: "4", room: "Corridor Level 4", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sambungan wallpaper renggang, karpet renggang", photo: "https://lh3.googleusercontent.com/d/1qUrkt6HJAho6mH6UDYnAQViOqxYbkG4M", history: [] },
+                { id: 58, recordNo: "EPF-000058", date: "2026-07-10", floor: "6", room: "603", item: "Window", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Kaca pecah dan sambungan wallpaper ngelupas", photo: "https://lh3.googleusercontent.com/d/1YQWwOVthVM4tLrsa2Ra2CPPOhi0PemGh", history: [] },
+                { id: 59, recordNo: "EPF-000059", date: "2026-07-10", floor: "6", room: "606", item: "Wall", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper fungus.. coring bathroom retak", photo: "https://lh3.googleusercontent.com/d/1hOEdc16gMcba8GiWsaeb2zxMdmVMTd4I", history: [] },
+                { id: 60, recordNo: "EPF-000060", date: "2026-07-10", floor: "6", room: "606", item: "Wall", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper fungus.. noda bocor dr bathrom atas", photo: "https://lh3.googleusercontent.com/d/1gkzwzq9Mg3xXK_4g1t5QOc5Abx2_2jVk", history: [] },
+                { id: 61, recordNo: "EPF-000061", date: "2026-07-10", floor: "6", room: "606", item: "Wall", name: "Indra (Head Chef)", dept: "FBP", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper fungus dan sambungan terkelupas", photo: "https://lh3.googleusercontent.com/d/1s0C-E9nrw4kmGOhQI0IsGeW5MMWAQTyE", history: [] },
+                { id: 62, recordNo: "EPF-000062", date: "2026-07-10", floor: "5", room: "Corridor Level 5", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sambungan wallpaper renggang, karpet renggang", photo: "https://lh3.googleusercontent.com/d/12tFUrIolaLieZxA9BRqXvkzMMwqpTx7z", history: [] },
+                { id: 63, recordNo: "EPF-000063", date: "2026-07-10", floor: "6", room: "Corridor Level 6", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "wallpaper renggang, karpet corridor renggang", photo: "https://lh3.googleusercontent.com/d/1YCgz2QoudoMht6RXfDLM-UKhwysRtQSY", history: [] },
+                { id: 64, recordNo: "EPF-000064", date: "2026-07-10", floor: "6", room: "Corridor Level 6", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sambungan wallpaper renggang, sambungan karpet", photo: "https://lh3.googleusercontent.com/d/1ay6VhnzluDjqX4hteeNqGJ0XV7pvS80_", history: [] },
+                { id: 65, recordNo: "EPF-000065", date: "2026-07-10", floor: "7", room: "Corridor Level 7", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sambungan wallpaper renggang, sambungan karpet", photo: "https://lh3.googleusercontent.com/d/1b7KVouZvYhtLZo-ptRXX1QOiHj7iZFfR", history: [] },
+                { id: 66, recordNo: "EPF-000066", date: "2026-07-10", floor: "7", room: "Corridor Level 7", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sambungan wallpaper renggang, sambungan karpet", photo: "https://lh3.googleusercontent.com/d/1vDAfmStnVLM-NBdJJTV9kqmsVZmDOk4E", history: [] },
+                { id: 67, recordNo: "EPF-000067", date: "2026-07-10", floor: "7", room: "Corridor Level 7", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sambungan wallpaper renggang, sambungan karpet", photo: "https://lh3.googleusercontent.com/d/1toaOcl2y84EMb-MFu4zMXc1ACd39NIiF", history: [] },
+                { id: 68, recordNo: "EPF-000068", date: "2026-07-10", floor: "8", room: "Corridor Level 8", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sambungan wallpaper renggang, sambungan karpet", photo: "https://lh3.googleusercontent.com/d/1V0ZvClcf1E1N1LKpXjFUNsVZQQ6a6lvl", history: [] },
+                { id: 69, recordNo: "EPF-000069", date: "2026-07-10", floor: "8", room: "Corridor Level 8", item: "Others", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "sambungan wallpaper renggang, sambungan karpet", photo: "https://lh3.googleusercontent.com/d/1-MzrIfXHiHBgyOy0g-Or6hVD2sF8KOzp", history: [] },
+                { id: 70, recordNo: "EPF-000070", date: "2026-07-10", floor: "8", room: "808", item: "Wall", name: "Saras (HK SPV)", dept: "HK", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Beberapa sambungan wallpaper sedikit terbuka", photo: "https://lh3.googleusercontent.com/d/1MZta8YD6ePK4u6ht9o2E1YUfdKEQt5gX", history: [] },
+                { id: 71, recordNo: "EPF-000071", date: "2026-07-14", floor: "8", room: "810", item: "Ceiling", name: "Septian (Asst.Bqt Manager)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Ceiling dekat grill AC terkelupas", photo: "https://lh3.googleusercontent.com/d/17Y4PhgBeLFzI4OLL0HsP8MLBUuKpwpZD", history: [] },
+                { id: 72, recordNo: "EPF-000072", date: "2026-07-18", floor: "8", room: "808", item: "Furniture", name: "Septian (Asst.Bqt Manager)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "HPL Luggage Rack Terkelupas", photo: "https://lh3.googleusercontent.com/d/1JkS69S7M3M1YGFwtXj2Zq_djr1Jgctfc", history: [] },
+                { id: 73, recordNo: "EPF-000073", date: "2026-07-18", floor: "8", room: "810", item: "Wall", name: "Septian (Asst.Bqt Manager)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper sobek dekat pintu masuk", photo: "https://lh3.googleusercontent.com/d/1oxPONMe3atuPmr7yRSXrUS--E0bVqVBj", history: [] },
+                { id: 74, recordNo: "EPF-000074", date: "2026-07-18", floor: "8", room: "810", item: "Door", name: "Septian (Asst.Bqt Manager)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Karet Pintu toilet robek", photo: "https://lh3.googleusercontent.com/d/1qCRNlhV4RxUrO-U25YqUdSufrsbaRWnD", history: [] },
+                { id: 75, recordNo: "EPF-000075", date: "2026-07-18", floor: "8", room: "810", item: "Ceiling", name: "Septian (Asst.Bqt Manager)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Fungus di plafon atas wastafel, noda dicat", photo: "https://lh3.googleusercontent.com/d/1qnq0CctRvVEm6JYPesfgWz5XGH_virhP", history: [] },
+                { id: 76, recordNo: "EPF-000076", date: "2026-07-18", floor: "8", room: "810", item: "Floor", name: "Septian (Asst.Bqt Manager)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Keramik lantai bathroom pecah", photo: "https://lh3.googleusercontent.com/d/1IH4Zjxz6unUEovtlZvaV-l_0GHhFqs7c", history: [] },
+                { id: 77, recordNo: "EPF-000077", date: "2026-07-18", floor: "8", room: "810", item: "Wall", name: "Septian (Asst.Bqt Manager)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Tatakan tempat sabun berkarat dan kotor", photo: "https://lh3.googleusercontent.com/d/1dyBBaUT3yV49f9HBdr7Sho8XUY8Yysb1", history: [] },
+                { id: 78, recordNo: "EPF-000078", date: "2026-07-18", floor: "8", room: "811", item: "Wall", name: "Septian (Asst.Bqt Manager)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper diatas meja telpon terkelupas", photo: "https://lh3.googleusercontent.com/d/1ekeWeyaZL-MqlFQZZnbn6hqsPKm7hYYt", history: [] },
+                { id: 79, recordNo: "EPF-000079", date: "2026-07-18", floor: "8", room: "811", item: "Wall", name: "Septian (Asst.Bqt Manager)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Bekas Lem diatas pintu toilet bagian dalam", photo: "https://lh3.googleusercontent.com/d/1-0BbWBf7nakJfhIDnpT-Vz89MrcJhsqV", history: [] },
+                { id: 80, recordNo: "EPF-000080", date: "2026-07-24", floor: "3", room: "Female Toilet", item: "Door", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Pintu Toilet HP.. Cacat", photo: "https://lh3.googleusercontent.com/d/1fTCA2dVXgdxbYbz6f48T4haHqmzty79k", history: [] },
+                { id: 81, recordNo: "EPF-000081", date: "2026-07-24", floor: "3", room: "Erian 2", item: "Wall", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper Dinding Erian1 mengelupas", photo: "https://lh3.googleusercontent.com/d/1dTMKuFIo34w-3jA0Q934_XmlDFZmMSMe", history: [] },
+                { id: 82, recordNo: "EPF-000082", date: "2026-07-24", floor: "3", room: "Erian 4", item: "Wall", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Wallpaper Tembok sekat Erian4 Mengelupas", photo: "https://lh3.googleusercontent.com/d/1ye0cK9cCGLGEPcLjTmnTOP9vJmetA8xE", history: [] },
+                { id: 83, recordNo: "EPF-000083", date: "2026-07-24", floor: "3", room: "Erian 3", item: "Electrical", name: "Asep (FBM)", dept: "FBS", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Acrylic Pintu Mesin Popcorn Pecah", photo: "https://lh3.googleusercontent.com/d/1N-TdtjPGfKo-UZ6BH2Kxc46m3D17uPOD", history: [] },
+                { id: 84, recordNo: "EPF-000084", date: "2026-07-24", floor: "L", room: "Lobby", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Dinding business centers perlu disepet", photo: "https://lh3.googleusercontent.com/d/1sO9WSCTX-7P1pycSgCk9K2RJSshJ0-Uj", history: [] },
+                { id: 85, recordNo: "EPF-000085", date: "2026-07-24", floor: "L", room: "Lobby", item: "Wall", name: "Zainal (Asst. FOM)", dept: "FO", statusEng: "Open", picEng: "", checkHK: "Pending", note: "Dinding samping pintu tb hancur", photo: "https://lh3.googleusercontent.com/d/1gwl7NRFIJEcmemuKnSZBqDA0CPrs5I0h", history: [] }
+            ];
 
-      const handleRegisterStaffSubmit = (e) => {
-        e.preventDefault();
-        setRegMsg({ text: '', type: '' });
-        const emailTrim = newStaffEmail.trim().toLowerCase();
-        if (!emailTrim.endsWith('@gmail.com')) {
-          setRegMsg({ text: 'Gunakan akun email Google yang valid (@gmail.com).', type: 'error' });
-          return;
-        }
-        if (userList.some(u => u.email.toLowerCase() === emailTrim)) {
-          setRegMsg({ text: 'Email staff tersebut sudah terdaftar di sistem!', type: 'error' });
-          return;
-        }
-        if (newStaffPass.length < 6) {
-          setRegMsg({ text: 'Password minimal 6 karakter.', type: 'error' });
-          return;
-        }
-        const newStaffObj = {
-          email: emailTrim,
-          pass: newStaffPass,
-          name: newStaffName.trim(),
-          dept: newStaffDept,
-          role: 'staff_submit'
-        };
-        setUserList([...userList, newStaffObj]);
-        setRegMsg({ text: 'Staff baru berhasil didaftarkan dengan akses submit!', type: 'success' });
-        setTimeout(() => {
-          setRegisterModalOpen(false);
-          setNewStaffEmail('');
-          setNewStaffName('');
-          setNewStaffPass('');
-          setRegMsg({ text: '', type: '' });
-        }, 1500);
-      };
+            const [defects, setDefects] = useState(() => {
+                const saved = localStorage.getItem('erian_defects_data');
+                return saved ? JSON.parse(saved) : initialDefects;
+            });
 
-      const handleChangePasswordSubmit = (e) => {
-        e.preventDefault();
-        setPassMsg({ text: '', type: '' });
-        if (oldPassInput !== currentUser.pass) {
-          setPassMsg({ text: 'Password lama tidak sesuai.', type: 'error' });
-          return;
-        }
-        if (newPassInput.length < 6) {
-          setPassMsg({ text: 'Password baru minimal harus 6 karakter.', type: 'error' });
-          return;
-        }
-        if (newPassInput === oldPassInput) {
-          setPassMsg({ text: 'Password baru tidak boleh sama dengan password lama.', type: 'error' });
-          return;
-        }
-        if (newPassInput !== confirmPassInput) {
-          setPassMsg({ text: 'Konfirmasi password baru tidak cocok.', type: 'error' });
-          return;
-        }
+            useEffect(() => {
+                localStorage.setItem('erian_defects_data', JSON.stringify(defects));
+            }, [defects]);
 
-        const updatedList = userList.map(u => u.email === currentUser.email ? { ...u, pass: newPassInput } : u);
-        setUserList(updatedList);
-        const updatedCurrent = { ...currentUser, pass: newPassInput };
-        setCurrentUser(updatedCurrent);
-        localStorage.setItem('erian_current_user', JSON.stringify(updatedCurrent));
-        setPassMsg({ text: 'Password berhasil diperbarui!', type: 'success' });
-        setTimeout(() => {
-          setChangePassOpen(false);
-          setOldPassInput('');
-          setNewPassInput('');
-          setConfirmPassInput('');
-          setPassMsg({ text: '', type: '' });
-        }, 1500);
-      };
+            const [isModalOpen, setIsModalOpen] = useState(false);
+            const [search, setSearch] = useState('');
+            const [filterStatus, setFilterStatus] = useState('');
+            const [filterFloor, setFilterFloor] = useState('');
+            const [startDate, setStartDate] = useState('');
+            const [endDate, setEndDate] = useState('');
+            const [activeFilterCard, setActiveFilterCard] = useState('Total');
 
-      const handleAddDefect = (e) => {
-        e.preventDefault();
-        if (!roomInput.trim() || !noteInput.trim()) {
-          setFormMsg({ text: 'Nomor Ruangan dan Keterangan Defect wajib diisi!', type: 'error' });
-          return;
-        }
+            const [enlargedPhoto, setEnlargedPhoto] = useState(null);
+            const [aiModalOpen, setAiModalOpen] = useState(false);
+            const [aiAnalysisResult, setAiAnalysisResult] = useState('');
+            const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-        const nextId = defects.length > 0 ? Math.max(...defects.map(d => d.id)) + 1 : 1;
-        const recordNo = `EPF-${String(nextId).padStart(6, '0')}`;
-        const today = new Date().toISOString().split('T')[0];
+            const itemList = [
+                "Air Conditioner (AC)", "Electrical", "Lighting", "Plumbing", 
+                "Bathroom", "Door", "Window", "Wall", "Ceiling", "Floor", 
+                "Furniture", "Painting", "Telephone / TV", "Minibar", "Others"
+            ];
 
-        const newDefectItem = {
-          id: nextId,
-          recordNo: recordNo,
-          date: today,
-          floor: floorInput,
-          room: roomInput.trim(),
-          item: itemInput,
-          name: currentUser.name,
-          dept: currentUser.dept,
-          statusEng: "Open",
-          picEng: "",
-          checkHK: "Pending",
-          note: noteInput.trim(),
-          photo: photoInput.trim(),
-          history: []
-        };
+            const locationMapping = [
+                { floor: "L", room: "Lobby" }, { floor: "L", room: "Male Toilet" },
+                { floor: "L", room: "Female Toilet" }, { floor: "L", room: "Parking Area" },
+                { floor: "2", room: "Lv.2 Hall" }, { floor: "2", room: "PDR" },
+                { floor: "2", room: "Female Toilet" }, { floor: "2", room: "Male Toilet" },
+                { floor: "3", room: "Erian 1" }, { floor: "3", room: "Erian 2" }, { floor: "3", room: "Erian 3" },
+                { floor: "3", room: "Erian 4" }, { floor: "3", room: "Male Toilet" }, { floor: "3", room: "Female Toilet" },
+                { floor: "4", room: "401" }, { floor: "4", room: "402" }, { floor: "4", room: "403" },
+                { floor: "4", room: "404" }, { floor: "4", room: "405" }, { floor: "4", room: "406" },
+                { floor: "4", room: "407" }, { floor: "4", room: "408" }, { floor: "4", room: "409" },
+                { floor: "4", room: "410" }, { floor: "4", room: "411" }, { floor: "4", room: "412" },
+                { floor: "4", room: "413" }, { floor: "4", room: "414" }, { floor: "4", room: "415" },
+                { floor: "4", room: "416" }, { floor: "4", room: "417" }, { floor: "4", room: "Corridor Level 4" },
+                { floor: "5", room: "501" }, { floor: "5", room: "502" }, { floor: "5", room: "503" },
+                { floor: "5", room: "504" }, { floor: "5", room: "505" }, { floor: "5", room: "506" },
+                { floor: "5", room: "507" }, { floor: "5", room: "508" }, { floor: "5", room: "509" },
+                { floor: "5", room: "510" }, { floor: "5", room: "511" }, { floor: "5", room: "512" },
+                { floor: "5", room: "513" }, { floor: "5", room: "514" }, { floor: "5", room: "515" },
+                { floor: "5", room: "516" }, { floor: "5", room: "517" }, { floor: "5", room: "Corridor Level 5" },
+                { floor: "6", room: "601" }, { floor: "6", room: "602" }, { floor: "6", room: "603" },
+                { floor: "6", room: "604" }, { floor: "6", room: "605" }, { floor: "6", room: "606" },
+                { floor: "6", room: "607" }, { floor: "6", room: "608" }, { floor: "6", room: "609" },
+                { floor: "6", room: "610" }, { floor: "6", room: "611" }, { floor: "6", room: "612" },
+                { floor: "6", room: "613" }, { floor: "6", room: "Corridor Level 6" },
+                { floor: "7", room: "701" }, { floor: "7", room: "702" }, { floor: "7", room: "703" },
+                { floor: "7", room: "704" }, { floor: "7", room: "705" }, { floor: "7", room: "706" },
+                { floor: "7", room: "707" }, { floor: "7", room: "708" }, { floor: "7", room: "709" },
+                { floor: "7", room: "710" }, { floor: "7", room: "711" }, { floor: "7", room: "712" },
+                { floor: "7", room: "713" }, { floor: "7", room: "Corridor Level 7" },
+                { floor: "8", room: "801" }, { floor: "8", room: "802" }, { floor: "8", room: "803" },
+                { floor: "8", room: "804" }, { floor: "8", room: "805" }, { floor: "8", room: "806" },
+                { floor: "8", room: "807" }, { floor: "8", room: "808" }, { floor: "8", room: "809" },
+                { floor: "8", room: "810" }, { floor: "8", room: "811" }, { floor: "8", room: "812" },
+                { floor: "8", room: "813" }, { floor: "8", room: "Corridor Level 8" },
+                { floor: "9", room: "Lv.9 Area" }, { floor: "9", room: "Female Toilet" }, { floor: "9", room: "Male Toilet" }
+            ];
 
-        setDefects([newDefectItem, ...defects]);
-        setRoomInput('');
-        setNoteInput('');
-        setPhotoInput('');
-        setFormMsg({ text: `Laporan berhasil disubmit dengan nomor ${recordNo}!`, type: 'success' });
-        setTimeout(() => setFormMsg({ text: '', type: '' }), 3000);
-      };
+            const [formFloor, setFormFloor] = useState('L');
+            const [formRoom, setFormRoom] = useState('Lobby');
+            const [formItem, setFormItem] = useState('Air Conditioner (AC)');
+            const [formNote, setFormNote] = useState('');
+            const [formPhoto, setFormPhoto] = useState(null);
 
-      const filteredDefects = defects.filter(d => {
-        const matchFloor = selectedFloor === 'All' || d.floor === selectedFloor;
-        const matchStatus = selectedStatus === 'All' || d.statusEng === selectedStatus;
-        const matchSearch = d.room.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                            d.note.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                            d.recordNo.toLowerCase().includes(searchTerm.toLowerCase());
-        return matchFloor && matchStatus && matchSearch;
-      });
+            const availableRooms = locationMapping.filter(loc => loc.floor === formFloor);
 
-      if (!currentUser) {
-        return (
-          <div className="min-h-screen flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 border border-slate-200">
-              <div className="text-center mb-6">
-                <div className="bg-slate-900 text-white w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-2 text-xl font-bold">
-                  E
-                </div>
-                <h1 className="text-xl font-bold text-slate-900">Erian Defect Tracker</h1>
-                <p className="text-xs text-slate-500 mt-1">Silakan masuk menggunakan email terdaftar</p>
-              </div>
+            const nextRecordNum = useMemo(() => {
+                if (defects.length === 0) return 86;
+                const numbers = defects.map(d => {
+                    const match = d.recordNo.match(/\d+$/);
+                    return match ? parseInt(match[0], 10) : 0;
+                });
+                return Math.max(...numbers) + 1;
+            }, [defects]);
+            
+            const nextFormattedRecordNo = `EPF-${nextRecordNum.toString().padStart(6, '0')}`;
 
-              {authError && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg text-center">
-                  {authError}
-                </div>
-              )}
+            const worstRoomsList = useMemo(() => {
+                const counts = {};
+                defects.forEach(d => {
+                    const r = d.room || 'Unknown';
+                    counts[r] = (counts[r] || 0) + 1;
+                });
+                return Object.entries(counts)
+                    .map(([room, count]) => ({ room, count }))
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 10);
+            }, [defects]);
 
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Email Google</label>
-                  <input 
-                    type="email" 
-                    required
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
-                    placeholder="nama.staff@gmail.com"
-                    value={authEmailInput}
-                    onChange={(e) => setAuthEmailInput(e.target.value)}
-                  />
-                </div>
+            const handleFloorChange = (e) => {
+                const floor = e.target.value;
+                setFormFloor(floor);
+                const rooms = locationMapping.filter(loc => loc.floor === floor);
+                if (rooms.length > 0) setFormRoom(rooms[0].room);
+            };
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Password</label>
-                  <div className="relative">
-                    <input 
-                      type={showLoginPass ? "text" : "password"} 
-                      required
-                      className="w-full px-3 py-2 pr-10 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
-                      placeholder="••••••••"
-                      value={authPasswordInput}
-                      onChange={(e) => setAuthPasswordInput(e.target.value)}
-                    />
-                    <button 
-                      type="button"
-                      onClick={() => setShowLoginPass(!showLoginPass)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none"
-                    >
-                      <i className={`fa-solid ${showLoginPass ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-                    </button>
-                  </div>
-                </div>
+            const handlePhotoUpload = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => setFormPhoto(reader.result);
+                    reader.readAsDataURL(file);
+                }
+            };
 
-                <button 
-                  type="submit"
-                  className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg text-sm transition"
-                >
-                  Masuk Aplikasi
-                </button>
-              </form>
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                const today = new Date().toISOString().split('T')[0];
+                const newEntry = {
+                    id: Date.now(),
+                    recordNo: nextFormattedRecordNo,
+                    date: today,
+                    floor: formFloor,
+                    room: formRoom,
+                    item: formItem,
+                    name: currentUser.name,
+                    dept: currentUser.dept,
+                    statusEng: 'Open',
+                    picEng: '',
+                    checkHK: 'Pending',
+                    note: formNote,
+                    photo: formPhoto,
+                    history: [{ timestamp: new Date().toLocaleString(), action: `Report created by ${currentUser.name} (${currentUser.dept})` }]
+                };
+                setDefects([newEntry, ...defects]);
+                setIsModalOpen(false);
+                setFormNote('');
+                setFormPhoto(null);
+                setCurrentPage(1);
+            };
 
-              <div className="mt-4 text-center">
-                <button 
-                  onClick={() => { setRegisterModalOpen(true); setRegMsg({text:'', type:''}); }}
-                  className="text-xs text-blue-600 hover:underline font-medium"
-                >
-                  + Daftarkan Email Staff Baru (Akses Submit)
-                </button>
-              </div>
-            </div>
+            const updateEngStatus = (id, val) => {
+                setDefects(defects.map(d => {
+                    if (d.id === id) {
+                        let updatedPic = d.picEng;
+                        if (val === 'Done Progress' || val === 'Resolved') updatedPic = currentUser.name;
+                        const histEntry = { timestamp: new Date().toLocaleString(), action: `Eng status changed to '${val}' by ${currentUser.name}` };
+                        return { ...d, statusEng: val, picEng: updatedPic, history: [...(d.history || []), histEntry] };
+                    }
+                    return d;
+                }));
+            };
 
-            {registerModalOpen && (
-              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl border border-slate-200">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-base font-bold text-slate-800">Daftar Akun Staff (Akses Submit)</h3>
-                    <button onClick={() => setRegisterModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                      <i className="fa-solid fa-xmark text-lg"></i>
-                    </button>
-                  </div>
+            const updateHkStatus = (id, val) => {
+                setDefects(defects.map(d => {
+                    if (d.id === id) {
+                        const histEntry = { timestamp: new Date().toLocaleString(), action: `HK verification changed to '${val}' by ${currentUser.name}` };
+                        return { ...d, checkHK: val, history: [...(d.history || []), histEntry] };
+                    }
+                    return d;
+                }));
+            };
 
-                  {regMsg.text && (
-                    <div className={`mb-3 p-3 rounded-lg text-xs ${regMsg.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`}>
-                      {regMsg.text}
-                    </div>
-                  )}
+            const runAiAnalysis = (defect) => {
+                setAiModalOpen(true);
+                setIsAnalyzing(true);
+                setTimeout(() => {
+                    const item = defect.item || "General Item";
+                    const note = defect.note ? defect.note.toLowerCase() : "";
+                    const room = defect.room || "Area Hotel";
+                    const floor = defect.floor || "L";
+                    
+                    let cause = `Penurunan kualitas fisik pada komponen ${item.toLowerCase()} di area ${room} (Lantai ${floor}).`;
+                    let solution = `Lakukan pengecekan menyeluruh dan perbaikan finishing/struktur ulang.`;
 
-                  <form onSubmit={handleRegisterStaffSubmit} className="space-y-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap & Jabatan</label>
-                      <input 
-                        type="text" 
-                        required 
-                        placeholder="Contoh: Rian (Front Desk)"
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
-                        value={newStaffName}
-                        onChange={(e) => setNewStaffName(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1">Email Google Aktif</label>
-                      <input 
-                        type="email" 
-                        required 
-                        placeholder="staff.erian@gmail.com"
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
-                        value={newStaffEmail}
-                        onChange={(e) => setNewStaffEmail(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1">Departemen</label>
-                      <select 
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
-                        value={newStaffDept}
-                        onChange={(e) => setNewStaffDept(e.target.value)}
-                      >
-                        <option value="FO">Front Office (FO)</option>
-                        <option value="HK">Housekeeping (HK)</option>
-                        <option value="Eng">Engineering (Eng)</option>
-                        <option value="FBS">F&B Service (FBS)</option>
-                        <option value="FBP">F&B Product (FBP)</option>
-                        <option value="CA">Accounting (CA)</option>
-                        <option value="Sales">Sales & Marketing</option>
-                        <option value="IT">IT</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1">Buat Password</label>
-                      <div className="relative">
-                        <input 
-                          type={showNewStaffPass ? "text" : "password"} 
-                          required 
-                          placeholder="Min. 6 karakter"
-                          className="w-full px-3 py-2 pr-10 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
-                          value={newStaffPass}
-                          onChange={(e) => setNewStaffPass(e.target.value)}
-                        />
-                        <button 
-                          type="button"
-                          onClick={() => setShowNewStaffPass(!showNewStaffPass)}
-                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
-                        >
-                          <i className={`fa-solid ${showNewStaffPass ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-                        </button>
-                      </div>
-                    </div>
-                    <div className="pt-2">
-                      <button 
-                        type="submit"
-                        className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg text-sm transition"
-                      >
-                        Simpan & Berikan Akses Submit
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      }
+                    if (note.includes('fungus') || note.includes('jamur') || note.includes('noda') || note.includes('bocor') || note.includes('leaking')) {
+                        cause = `Terdeteksi kelembapan tinggi atau rembesan pipa di area ${room}.`;
+                        solution = `1. Bersihkan area dari jamur dengan fungisida.\n2. Periksa sumber kebocoran pipa.\n3. Keringkan dan cat ulang.`;
+                    } else if (note.includes('pecah') || note.includes('sobek') || note.includes('hancur') || note.includes('retak') || note.includes('kelupas')) {
+                        cause = `Kerusakan material fisik pada ${item.toLowerCase()} akibat usia pakai atau benturan.`;
+                        solution = `1. Ganti material rusak dengan unit baru standar hotel.\n2. Lakukan penambalan nat/sambungan secara presisi.`;
+                    }
 
-      return (
-        <div className="min-h-screen bg-slate-100 flex flex-col">
-          <header className="bg-slate-900 text-white shadow-sm">
-            <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-              <div className="flex items-center space-x-3">
-                <div className="bg-blue-600 text-white w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm">E</div>
-                <div>
-                  <h1 className="font-bold text-sm leading-tight">Erian Defect Tracker</h1>
-                  <p className="text-[11px] text-slate-400">Login as: <span className="text-slate-200 font-medium">{currentUser.name}</span> ({currentUser.email})</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button 
-                  onClick={() => { setChangePassOpen(true); setPassMsg({text:'', type:''}); }}
-                  className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-lg text-slate-200 transition"
-                >
-                  <i className="fa-solid fa-key mr-1"></i> Ganti Password
-                </button>
-                <button 
-                  onClick={handleLogout}
-                  className="px-2.5 py-1.5 bg-red-600/20 hover:bg-red-600 text-xs font-medium rounded-lg text-red-300 hover:text-white transition"
-                >
-                  <i className="fa-solid fa-right-from-bracket mr-1"></i> Keluar
-                </button>
-              </div>
-            </div>
-          </header>
+                    const analysisText = `Analisis Erian AI:\n` +
+                        `• Lokasi: ${room} (Lantai ${floor})\n` +
+                        `• Kategori: ${item}\n` +
+                        `• Catatan: "${defect.note || '-'}"\n\n` +
+                        `🔍 Akar Masalah:\n• ${cause}\n\n` +
+                        `🛠️ Rekomendasi Solusi:\n${solution}`;
 
-          <main className="max-w-7xl mx-auto px-4 py-5 w-full flex-1 space-y-5">
-            <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-lg font-bold text-slate-800">Selamat Datang, {currentUser.name}!</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Total Defect Tercatat: <span className="font-semibold text-slate-700">EPF-{String(defects.length).padStart(6, '0')}</span> (Berikutnya otomatis lanjut).
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-1 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg border border-slate-200">
-                    Dept: {currentUser.dept}
-                  </span>
-                  <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-lg border border-emerald-200">
-                    Sistem Aktif & Terhubung
-                  </span>
-                </div>
-              </div>
-            </div>
+                    setAiAnalysisResult(analysisText);
+                    setIsAnalyzing(false);
+                }, 400);
+            };
 
-            <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
-              <h3 className="font-bold text-slate-800 text-sm mb-3 flex items-center">
-                <i className="fa-solid fa-circle-plus text-blue-600 mr-2"></i> Form Input Defect Baru
-              </h3>
+            const exportToExcelTable = () => {
+                const headers = ["No. Record", "Date", "Floor", "Room", "Item", "Reporter", "Dept", "Eng Status", "Eng PIC", "HK Status", "Finding Note"];
+                let htmlTable = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">`;
+                htmlTable += `<head><meta charset="utf-8"/><style>table{border-collapse:collapse;width:100%;font-family:Calibri,sans-serif;font-size:11pt;}th{background:#333b44;color:#fff;font-weight:bold;border:0.5pt solid #000;padding:6px;}td{border:0.5pt solid #d9d9d9;padding:5px;}</style></head><body><table><tr>`;
+                headers.forEach(h => htmlTable += `<th>${h}</th>`);
+                htmlTable += `</tr>`;
+                filteredData.forEach(d => {
+                    htmlTable += `<tr><td>${d.recordNo}</td><td>${d.date||''}</td><td>${d.floor}</td><td>${d.room}</td><td>${d.item}</td><td>${d.name}</td><td>${d.dept}</td><td>${d.statusEng}</td><td>${d.picEng||''}</td><td>${d.checkHK}</td><td>${d.note||''}</td></tr>`;
+                });
+                htmlTable += `</table></body></html>`;
 
-              {formMsg.text && (
-                <div className={`mb-3 p-3 rounded-lg text-xs ${formMsg.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`}>
-                  {formMsg.text}
-                </div>
-              )}
+                const blob = new Blob([htmlTable], { type: 'application/vnd.ms-excel' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `Erian_Defect_Report_${new Date().toISOString().split('T')[0]}.xls`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
 
-              <form onSubmit={handleAddDefect} className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Lantai / Area</label>
-                  <select 
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-slate-900"
-                    value={floorInput}
-                    onChange={(e) => setFloorInput(e.target.value)}
-                  >
-                    <option value="L">Lobby / L</option>
-                    <option value="3">Floor 3</option>
-                    <option value="4">Floor 4</option>
-                    <option value="5">Floor 5</option>
-                    <option value="6">Floor 6</option>
-                    <option value="7">Floor 7</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">No. Kamar / Lokasi</label>
-                  <input 
-                    type="text" 
-                    required 
-                    placeholder="Contoh: 614 / Erian 1" 
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-slate-900"
-                    value={roomInput}
-                    onChange={(e) => setRoomInput(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Kategori Item</label>
-                  <select 
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-slate-900"
-                    value={itemInput}
-                    onChange={(e) => setItemInput(e.target.value)}
-                  >
-                    <option value="Wall">Wall / Dinding</option>
-                    <option value="Ceiling">Ceiling / Plafon</option>
-                    <option value="Bathroom">Bathroom / Kamar Mandi</option>
-                    <option value="Electrical">Electrical / Lampu / AC</option>
-                    <option value="Window">Window / Kaca</option>
-                    <option value="Furniture">Furniture / Kayu</option>
-                    <option value="Telephone / TV">Telephone / TV</option>
-                    <option value="Others">Others / Lainnya</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Link Foto (Opsional)</label>
-                  <input 
-                    type="text" 
-                    placeholder="https://... (URL Foto)" 
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-slate-900"
-                    value={photoInput}
-                    onChange={(e) => setPhotoInput(e.target.value)}
-                  />
-                </div>
-                <div className="md:col-span-4">
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Keterangan / Detail Defect</label>
-                  <textarea 
-                    rows="2"
-                    required 
-                    placeholder="Jelaskan detail kerusakan atau perbaikan yang diperlukan..."
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-slate-900"
-                    value={noteInput}
-                    onChange={(e) => setNoteInput(e.target.value)}
-                  ></textarea>
-                </div>
-                <div className="md:col-span-4 flex justify-end">
-                  <button 
-                    type="submit"
-                    className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg text-xs transition shadow-sm"
-                  >
-                    <i className="fa-solid fa-paper-plane mr-1.5"></i> Submit Laporan Defect
-                  </button>
-                </div>
-              </form>
-            </div>
+            const totalFindings = defects.length;
+            const openPendingCount = defects.filter(d => d.statusEng === 'Open' || d.checkHK === 'Pending' || d.checkHK === 'Not Completed').length;
+            const doneProgressCount = defects.filter(d => d.statusEng === 'Done Progress').length;
+            const verifiedCleanCount = defects.filter(d => d.checkHK === 'Verified').length;
 
-            <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
-              <div className="flex flex-col md:flex-row justify-between items-center gap-3 mb-4">
-                <h3 className="font-bold text-slate-800 text-sm">Monitoring Data Defect ({filteredDefects.length} Data)</h3>
+            const filteredData = defects.filter(d => {
+                const matchSearch = d.room.toLowerCase().includes(search.toLowerCase()) || 
+                                      d.item.toLowerCase().includes(search.toLowerCase()) || 
+                                      d.name.toLowerCase().includes(search.toLowerCase());
+                const matchStatus = filterStatus ? d.statusEng === filterStatus : true;
+                const matchFloor = filterFloor ? d.floor === filterFloor : true;
                 
-                <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                  <input 
-                    type="text" 
-                    placeholder="Cari kamar / catatan..." 
-                    className="px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-slate-900"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                  <select 
-                    className="px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-slate-900"
-                    value={selectedFloor}
-                    onChange={(e) => setSelectedFloor(e.target.value)}
-                  >
-                    <option value="All">Semua Lantai</option>
-                    <option value="L">Lobby (L)</option>
-                    <option value="3">Floor 3</option>
-                    <option value="4">Floor 4</option>
-                    <option value="5">Floor 5</option>
-                    <option value="6">Floor 6</option>
-                    <option value="7">Floor 7</option>
-                  </select>
+                let matchDate = true;
+                if (startDate && d.date && d.date < startDate) matchDate = false;
+                if (endDate && d.date && d.date > endDate) matchDate = false;
+
+                let matchCard = true;
+                if (activeFilterCard === 'Open / Pending') {
+                    matchCard = d.statusEng === 'Open' || d.checkHK === 'Pending' || d.checkHK === 'Not Completed';
+                } else if (activeFilterCard === 'Done Progress') {
+                    matchCard = d.statusEng === 'Done Progress';
+                } else if (activeFilterCard === 'Verified Clean') {
+                    matchCard = d.checkHK === 'Verified';
+                }
+
+                return matchSearch && matchStatus && matchFloor && matchDate && matchCard;
+            }).sort((a, b) => a.id - b.id); // URUTAN KECIL KE BESAR (No 7 ke 85)
+
+            // Pagination Logic: 20 items per page
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
+            const paginatedData = useMemo(() => {
+                const start = (currentPage - 1) * itemsPerPage;
+                return filteredData.slice(start, start + itemsPerPage);
+            }, [filteredData, currentPage]);
+
+            if (!currentUser) {
+                return (
+                    <div className="min-h-screen bg-[#cbd5e1] flex items-center justify-center p-4">
+                        <div className="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl text-center space-y-6 border border-slate-300">
+                            <div className="w-16 h-16 bg-[#333b44] rounded-2xl flex items-center justify-center mx-auto shadow-md">
+                                <i className="fa-solid fa-building text-white text-2xl"></i>
+                            </div>
+                            <div>
+                                <h1 className="text-xl font-bold text-slate-800 tracking-wide uppercase">Erian Defect Tracker</h1>
+                                <p className="text-xs text-slate-500 mt-1">Masukkan Email dan Password resmi Anda.</p>
+                            </div>
+
+                            {authError && (
+                                <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-xs flex items-center gap-2 text-left">
+                                    <i className="fa-solid fa-circle-exclamation text-red-500 shrink-0"></i>
+                                    <span>{authError}</span>
+                                </div>
+                            )}
+
+                            <form onSubmit={handleLogin} className="space-y-4 text-left">
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Email</label>
+                                    <div className="relative">
+                                        <i className="fa-solid fa-envelope absolute left-3 top-3.5 text-slate-400"></i>
+                                        <input 
+                                            type="email" 
+                                            value={authEmailInput} 
+                                            onChange={(e) => setAuthEmailInput(e.target.value)} 
+                                            placeholder="zainalidris22@gmail.com" 
+                                            required
+                                            className="w-full pl-9 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-slate-500 bg-white"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Password</label>
+                                    <div className="relative">
+                                        <i className="fa-solid fa-lock absolute left-3 top-3.5 text-slate-400"></i>
+                                        <input 
+                                            type={showLoginPass ? "text" : "password"} 
+                                            value={authPasswordInput} 
+                                            onChange={(e) => setAuthPasswordInput(e.target.value)} 
+                                            placeholder="Password" 
+                                            required
+                                            className="w-full pl-9 pr-10 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-slate-500 bg-white"
+                                        />
+                                        <button type="button" onClick={() => setShowLoginPass(!showLoginPass)} className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer">
+                                            <i className={`fa-solid ${showLoginPass ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <button type="submit" className="w-full bg-[#333b44] hover:bg-[#22272e] text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition shadow-lg cursor-pointer">
+                                    <i className="fa-solid fa-right-to-bracket"></i>
+                                    <span>Masuk Aplikasi</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen bg-[#cbd5e1] text-slate-800 font-sans pb-10">
+                    
+                    {/* Header */}
+                    <header className="bg-[#333b44] text-white shadow-md sticky top-0 z-40 border-b border-[#47515e]">
+                        <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-2">
+                            <div className="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
+                                <div className="flex items-center space-x-2">
+                                    <div className="bg-[#47515e] p-2 rounded-xl text-slate-200 font-bold flex items-center justify-center border border-slate-500 shadow-inner">
+                                        <i className="fa-solid fa-building text-base"></i>
+                                    </div>
+                                    <div>
+                                        <h1 className="font-bold text-xs sm:text-sm tracking-wide uppercase text-slate-100 flex items-center gap-1.5">
+                                            ERIAN DEFECT FIND OUT
+                                            <span className="bg-[#22272e] text-slate-300 text-[9px] px-1.5 py-0.5 rounded-full border border-slate-600">EPF</span>
+                                        </h1>
+                                        <p className="text-[11px] text-slate-400 truncate max-w-[200px] sm:max-w-none">
+                                            {currentUser.name} ({currentUser.dept})
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-1.5 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-600">
+                                <button
+                                    onClick={() => setWorstRoomModal(true)}
+                                    className="bg-amber-600 hover:bg-amber-500 text-white text-xs px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 transition cursor-pointer shadow animate-pulse"
+                                >
+                                    <i className="fa-solid fa-triangle-exclamation text-yellow-200"></i>
+                                    <span>10 Worst Rooms</span>
+                                </button>
+                                <button
+                                    onClick={() => setChangePassOpen(true)}
+                                    className="bg-slate-700 hover:bg-slate-600 text-white text-xs px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 transition cursor-pointer"
+                                >
+                                    <i className="fa-solid fa-key text-amber-400"></i>
+                                    <span className="hidden md:inline">Password</span>
+                                </button>
+                                <button
+                                    onClick={handleLogout}
+                                    className="bg-red-600 hover:bg-red-500 text-white text-xs px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 transition cursor-pointer"
+                                >
+                                    <i className="fa-solid fa-right-from-bracket"></i>
+                                    <span>Logout</span>
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Banner */}
+                    <div className="max-w-7xl mx-auto px-4 pt-4 pb-2">
+                        <div className="bg-[#2a3038] border border-slate-500 p-5 rounded-2xl shadow-lg flex flex-col sm:flex-row justify-between items-center gap-4">
+                            <div className="text-center sm:text-left">
+                                <h2 className="font-bold text-white text-xl sm:text-2xl tracking-wide">ERIAN HOTEL</h2>
+                                <p className="text-xs sm:text-sm text-slate-300 font-medium">Sistem Monitoring & Pelaporan Kerusakan Fasilitas</p>
+                            </div>
+                            <div className="flex flex-wrap gap-2 justify-center w-full sm:w-auto">
+                                <button onClick={() => setIsModalOpen(true)} className="flex-1 sm:flex-none bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-1.5 shadow transition cursor-pointer">
+                                    <i className="fa-solid fa-circle-plus"></i>
+                                    <span>Submit Report</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <main className="max-w-7xl mx-auto px-4 py-2">
+                        {/* Statistics Cards */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                            <div onClick={() => {setActiveFilterCard('Total'); setCurrentPage(1);}} className={`p-3.5 rounded-xl shadow border cursor-pointer transition-all ${activeFilterCard === 'Total' ? 'bg-white border-red-600 ring-2 ring-red-300' : 'bg-white border-slate-200 hover:bg-red-50'}`}>
+                                <div className="flex justify-between items-start">
+                                    <p className="text-[11px] text-red-600 font-bold uppercase">TOTAL FINDING</p>
+                                    <i className="fa-solid fa-clipboard-list text-red-400 text-xs"></i>
+                                </div>
+                                <h3 className="text-xl sm:text-2xl font-bold text-red-600 mt-1">{totalFindings}</h3>
+                            </div>
+                            
+                            <div onClick={() => {setActiveFilterCard('Open / Pending'); setCurrentPage(1);}} className={`p-3.5 rounded-xl shadow border cursor-pointer transition-all ${activeFilterCard === 'Open / Pending' ? 'bg-white border-amber-500 ring-2 ring-amber-300' : 'bg-white border-slate-200 hover:bg-amber-50'}`}>
+                                <div className="flex justify-between items-start">
+                                    <p className="text-[11px] text-amber-600 font-bold uppercase">OPEN / PENDING</p>
+                                    <i className="fa-solid fa-clock text-amber-400 text-xs"></i>
+                                </div>
+                                <h3 className="text-xl sm:text-2xl font-bold text-amber-600 mt-1">{openPendingCount}</h3>
+                            </div>
+
+                            <div onClick={() => {setActiveFilterCard('Done Progress'); setCurrentPage(1);}} className={`p-3.5 rounded-xl shadow border cursor-pointer transition-all ${activeFilterCard === 'Done Progress' ? 'bg-white border-blue-400 ring-2 ring-blue-200' : 'bg-white border-slate-200 hover:bg-blue-50'}`}>
+                                <div className="flex justify-between items-start">
+                                    <p className="text-[11px] text-blue-600 font-bold uppercase">Done Progress</p>
+                                    <i className="fa-solid fa-screwdriver-wrench text-blue-400 text-xs"></i>
+                                </div>
+                                <h3 className="text-xl sm:text-2xl font-bold text-blue-600 mt-1">{doneProgressCount}</h3>
+                            </div>
+
+                            <div onClick={() => {setActiveFilterCard('Verified Clean'); setCurrentPage(1);}} className={`p-3.5 rounded-xl shadow border cursor-pointer transition-all ${activeFilterCard === 'Verified Clean' ? 'bg-white border-emerald-400 ring-2 ring-emerald-200' : 'bg-white border-slate-200 hover:bg-emerald-50'}`}>
+                                <div className="flex justify-between items-start">
+                                    <p className="text-[11px] text-emerald-600 font-bold uppercase">Verified Clean</p>
+                                    <i className="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+                                </div>
+                                <h3 className="text-xl sm:text-2xl font-bold text-emerald-600 mt-1">{verifiedCleanCount}</h3>
+                            </div>
+                        </div>
+
+                        {/* Search & Filter Bar */}
+                        <div className="bg-white p-3.5 rounded-xl shadow border border-slate-200 mb-4 space-y-3">
+                            <div className="flex flex-col sm:flex-row gap-2.5">
+                                <div className="flex-1 relative">
+                                    <i className="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+                                    <input 
+                                        type="text" 
+                                        value={search}
+                                        onChange={(e) => {setSearch(e.target.value); setCurrentPage(1);}}
+                                        placeholder="Cari ruang, item, atau pelapor..." 
+                                        className="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:border-slate-500"
+                                    />
+                                </div>
+                                <div className="flex gap-2">
+                                    <select value={filterStatus} onChange={(e) => {setFilterStatus(e.target.value); setCurrentPage(1);}} className="flex-1 sm:flex-none px-2.5 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none cursor-pointer">
+                                        <option value="">Semua Status</option>
+                                        <option value="Open">Open</option>
+                                        <option value="Done Progress">Done Progress</option>
+                                        <option value="Resolved">Resolved</option>
+                                    </select>
+                                    <select value={filterFloor} onChange={(e) => {setFilterFloor(e.target.value); setCurrentPage(1);}} className="flex-1 sm:flex-none px-2.5 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none cursor-pointer">
+                                        <option value="">Semua Area</option>
+                                        {Array.from(new Set(locationMapping.map(loc => loc.floor))).map(f => (
+                                            <option key={f} value={f}>{f === 'L' ? 'Lobby (L)' : `Lantai ${f}`}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                                <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-300 px-2.5 py-1.5 rounded-lg text-[11px]">
+                                    <span className="text-slate-500 font-bold">Tanggal:</span>
+                                    <input type="date" value={startDate} onChange={(e) => {setStartDate(e.target.value); setCurrentPage(1);}} className="bg-transparent focus:outline-none text-slate-700 cursor-pointer" />
+                                    <span>s/d</span>
+                                    <input type="date" value={endDate} onChange={(e) => {setEndDate(e.target.value); setCurrentPage(1);}} className="bg-transparent focus:outline-none text-slate-700 cursor-pointer" />
+                                    {(startDate || endDate) && <button onClick={() => {setStartDate(''); setEndDate(''); setCurrentPage(1);}} className="text-red-500 font-bold ml-1">✕</button>}
+                                </div>
+
+                                <button onClick={exportToExcelTable} className="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-bold text-xs flex items-center space-x-1.5 transition shadow cursor-pointer">
+                                    <i className="fa-solid fa-file-excel"></i>
+                                    <span>Export Excel</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Data Table with Pagination (20 per page) - SEMUA USER BISA UPDATE */}
+                        <div className="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                                    <thead>
+                                        <tr className="bg-[#333b44] text-slate-100 font-semibold border-b border-slate-600">
+                                            <th className="p-3">No. Record</th>
+                                            <th className="p-3">Foto</th>
+                                            <th className="p-3">Floor / Area</th>
+                                            <th className="p-3">Item Kerusakan</th>
+                                            <th className="p-3">Pelapor</th>
+                                            <th className="p-3">Status (Eng)</th>
+                                            <th className="p-3">Check (HK)</th>
+                                            <th className="p-3 text-center">AI Assist</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-200">
+                                        {paginatedData.length > 0 ? paginatedData.map((item) => (
+                                            <tr key={item.id} className="hover:bg-slate-50 transition">
+                                                <td className="p-3 font-mono font-bold text-[#333b44]">
+                                                    {item.recordNo}
+                                                    <div className="text-[10px] text-slate-400 font-normal">{item.date}</div>
+                                                </td>
+                                                <td className="p-3">
+                                                    {item.photo ? (
+                                                        <div className="relative w-11 h-11 cursor-pointer group" onClick={() => setEnlargedPhoto(item.photo)}>
+                                                            <img src={item.photo} alt="Defect" className="w-full h-full object-cover rounded-lg border border-slate-300 shadow-sm transition group-hover:opacity-60" />
+                                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                                                                <i className="fa-solid fa-expand text-slate-800"></i>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="w-11 h-11 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 text-[10px] border border-slate-200">No Foto</div>
+                                                    )}
+                                                </td>
+                                                <td className="p-3 font-medium text-slate-800">
+                                                    {item.floor === 'L' ? 'Lobby (L)' : `Lantai ${item.floor}`}
+                                                    <br /><span className="text-[11px] text-slate-500 font-normal">{item.room}</span>
+                                                </td>
+                                                <td className="p-3 text-slate-700">
+                                                    <span className="font-semibold text-slate-900">{item.item}</span>
+                                                    <br /><span className="text-[11px] text-slate-500">{item.note || '-'}</span>
+                                                </td>
+                                                <td className="p-3 text-slate-600">
+                                                    {item.name}
+                                                    <br /><span className="bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded text-[10px] font-bold">{item.dept}</span>
+                                                </td>
+                                                <td className="p-3">
+                                                    <select 
+                                                        value={item.statusEng} 
+                                                        onChange={(e) => updateEngStatus(item.id, e.target.value)}
+                                                        className="text-xs p-1.5 border rounded font-medium focus:outline-none w-full bg-blue-50 border-blue-300 text-blue-800 cursor-pointer"
+                                                    >
+                                                        <option value="Open">Open</option>
+                                                        <option value="Done Progress">Done Progress</option>
+                                                        <option value="Resolved">Resolved</option>
+                                                    </select>
+                                                    {item.picEng && <div className="mt-1 text-[9px] text-blue-600 font-semibold bg-blue-50 px-1 py-0.5 rounded border border-blue-100">PIC: {item.picEng}</div>}
+                                                </td>
+                                                <td className="p-3">
+                                                    <select 
+                                                        value={item.checkHK} 
+                                                        onChange={(e) => updateHkStatus(item.id, e.target.value)}
+                                                        className="text-xs p-1.5 border rounded font-medium focus:outline-none w-full bg-emerald-50 border-emerald-300 text-emerald-800 cursor-pointer"
+                                                    >
+                                                        <option value="Pending">Pending</option>
+                                                        <option value="Not Completed">Not Completed</option>
+                                                        <option value="Verified">Verified</option>
+                                                    </select>
+                                                </td>
+                                                <td className="p-3 text-center">
+                                                    <button onClick={() => runAiAnalysis(item)} className="bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-300 px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 mx-auto transition shadow-sm cursor-pointer">
+                                                        <i className="fa-solid fa-wand-magic-sparkles text-amber-600"></i><span>Analyze</span>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        )) : (
+                                            <tr><td colSpan="8" className="p-6 text-center text-slate-500">Tidak ada data defect yang ditemukan.</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Pagination Controls */}
+                            <div className="bg-slate-50 px-4 py-3 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-2">
+                                <span className="text-xs text-slate-500">
+                                    Menampilkan Halaman <span className="font-bold text-slate-700">{currentPage}</span> dari <span className="font-bold text-slate-700">{totalPages}</span> ({filteredData.length} total data)
+                                </span>
+                                <div className="flex items-center space-x-1">
+                                    <button 
+                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                        disabled={currentPage === 1}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${currentPage === 1 ? 'bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer'}`}
+                                    >
+                                        <i className="fa-solid fa-chevron-left mr-1"></i> Sebelumnya
+                                    </button>
+                                    <span className="px-3 py-1.5 bg-[#333b44] text-white rounded-lg text-xs font-bold">
+                                        {currentPage} / {totalPages}
+                                    </span>
+                                    <button 
+                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                        disabled={currentPage === totalPages}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${currentPage === totalPages ? 'bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer'}`}
+                                    >
+                                        Selanjutnya <i className="fa-solid fa-chevron-right ml-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+
+                    {/* MODAL 10 WORST ROOMS */}
+                    {worstRoomModal && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+                                <div className="flex justify-between items-center mb-4 border-b pb-3">
+                                    <h3 className="font-bold text-base text-slate-800 flex items-center gap-2">
+                                        <i className="fa-solid fa-triangle-exclamation text-amber-500"></i> 10 Worst Rooms (Defect Terbanyak)
+                                    </h3>
+                                    <button onClick={() => setWorstRoomModal(false)} className="text-slate-400 hover:text-slate-600 font-bold cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
+                                </div>
+                                <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
+                                    {worstRoomsList.map((item, idx) => (
+                                        <div key={idx} className={`p-3 rounded-xl border flex items-center justify-between ${idx === 0 ? 'bg-red-50 border-red-300 shadow-sm' : idx < 3 ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200'}`}>
+                                            <div className="flex items-center gap-3">
+                                                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${idx === 0 ? 'bg-red-600 text-white' : idx < 3 ? 'bg-amber-500 text-white' : 'bg-slate-300 text-slate-700'}`}>
+                                                    {idx + 1}
+                                                </span>
+                                                <div>
+                                                    <p className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                                                        Room / Area: {item.room}
+                                                        {idx === 0 && <span className="bg-red-600 text-white text-[9px] px-1.5 py-0.5 rounded font-bold animate-pulse">CRITICAL ALERT</span>}
+                                                    </p>
+                                                    <p className="text-xs text-slate-500">Total Temuan Kerusakan</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${idx === 0 ? 'bg-red-600 text-white' : 'bg-slate-200 text-slate-800'}`}>
+                                                    {item.count} Laporan
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="mt-4 pt-3 border-t text-right">
+                                    <button onClick={() => setWorstRoomModal(false)} className="bg-[#333b44] hover:bg-[#22272e] text-white px-4 py-2 rounded-xl text-xs font-bold cursor-pointer">Tutup</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL SUBMIT REPORT */}
+                    {isModalOpen && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+                                <div className="flex justify-between items-center mb-4 border-b pb-3">
+                                    <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2"><i className="fa-solid fa-circle-plus text-[#333b44]"></i> Submit Report Defect</h3>
+                                    <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
+                                </div>
+                                <div className="bg-slate-100 border border-slate-300 px-4 py-2.5 rounded-lg mb-4 flex justify-between items-center">
+                                    <span className="text-xs font-bold text-slate-500 uppercase">No. Tiket:</span>
+                                    <span className="font-mono text-lg font-bold text-[#333b44]">{nextFormattedRecordNo}</span>
+                                </div>
+                                <form onSubmit={handleSubmit} className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Lantai</label>
+                                            <select value={formFloor} onChange={handleFloorChange} className="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white cursor-pointer">
+                                                {Array.from(new Set(locationMapping.map(loc => loc.floor))).map(f => <option key={f} value={f}>{f === 'L' ? 'Lobby (L)' : `Lantai ${f}`}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Ruangan</label>
+                                            <select value={formRoom} onChange={(e) => setFormRoom(e.target.value)} className="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white cursor-pointer">
+                                                {availableRooms.map((loc, idx) => <option key={idx} value={loc.room}>{loc.room}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Kategori</label>
+                                        <select value={formItem} onChange={(e) => setFormItem(e.target.value)} className="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white cursor-pointer">
+                                            {itemList.map((item, idx) => <option key={idx} value={item}>{item}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Detail Temuan</label>
+                                        <textarea rows="3" value={formNote} onChange={(e) => setFormNote(e.target.value)} placeholder="Jelaskan detail kerusakan..." required className="w-full p-2 border border-slate-300 rounded-lg text-xs focus:outline-none"></textarea>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Foto</label>
+                                        <input type="file" accept="image/*" onChange={handlePhotoUpload} className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer" />
+                                        {formPhoto && <img src={formPhoto} alt="Preview" className="w-16 h-16 object-cover rounded-lg border mt-2" />}
+                                    </div>
+                                    <div className="flex justify-end space-x-2 pt-2 border-t">
+                                        <button type="button" onClick={() => setIsModalOpen(false)} className="px-3 py-1.5 border rounded-lg text-xs cursor-pointer">Batal</button>
+                                        <button type="submit" className="px-3 py-1.5 bg-[#333b44] text-white rounded-lg text-xs cursor-pointer">Kirim Report</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL GANTI PASSWORD */}
+                    {changePassOpen && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+                                <div className="flex justify-between items-center mb-4 border-b pb-3">
+                                    <h3 className="font-bold text-base text-slate-800 flex items-center gap-2"><i className="fa-solid fa-key text-amber-600"></i> Ganti Password</h3>
+                                    <button onClick={() => { setChangePassOpen(false); setPassMsg({text: '', type: ''}); }} className="text-slate-400 hover:text-slate-600 cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
+                                </div>
+                                {passMsg.text && <div className={`p-2.5 rounded-lg text-xs mb-3 ${passMsg.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`}>{passMsg.text}</div>}
+                                <form onSubmit={handleChangePasswordSubmit} className="space-y-3">
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Password Lama</label>
+                                        <input type={showOldPass ? "text" : "password"} value={oldPassInput} onChange={(e) => setOldPassInput(e.target.value)} required className="w-full p-2 border rounded-lg text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Password Baru</label>
+                                        <input type={showNewPass ? "text" : "password"} value={newPassInput} onChange={(e) => setNewPassInput(e.target.value)} required className="w-full p-2 border rounded-lg text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Konfirmasi Password</label>
+                                        <input type={showConfirmPass ? "text" : "password"} value={confirmPassInput} onChange={(e) => setConfirmPassInput(e.target.value)} required className="w-full p-2 border rounded-lg text-xs" />
+                                    </div>
+                                    <div className="flex justify-end space-x-2 pt-2 border-t">
+                                        <button type="button" onClick={() => setChangePassOpen(false)} className="px-3 py-1.5 border rounded-lg text-xs cursor-pointer">Batal</button>
+                                        <button type="submit" className="px-3 py-1.5 bg-[#333b44] text-white rounded-lg text-xs cursor-pointer">Simpan</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL AI ASSISTANT */}
+                    {aiModalOpen && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+                                <div className="flex justify-between items-center mb-4 border-b pb-3">
+                                    <h3 className="font-bold text-base text-slate-800 flex items-center gap-2"><i className="fa-solid fa-wand-magic-sparkles text-amber-600"></i> AI Assistant</h3>
+                                    <button onClick={() => setAiModalOpen(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
+                                </div>
+                                {isAnalyzing ? (
+                                    <div className="py-8 text-center space-y-2"><div className="w-6 h-6 border-3 border-slate-600 border-t-transparent rounded-full animate-spin mx-auto"></div><p className="text-xs text-slate-600">Menganalisis temuan...</p></div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        <div className="bg-slate-50 p-3 rounded-xl border text-xs text-slate-800 whitespace-pre-line leading-relaxed">{aiAnalysisResult}</div>
+                                        <button onClick={() => setAiModalOpen(false)} className="w-full bg-[#333b44] text-white py-2 rounded-lg text-xs font-medium cursor-pointer">Tutup</button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ZOOM FOTO */}
+                    {enlargedPhoto && (
+                        <div className="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center z-[60] p-4" onClick={() => setEnlargedPhoto(null)}>
+                            <div className="relative max-w-4xl max-h-[90vh]">
+                                <button className="absolute -top-10 right-0 text-white bg-slate-800/80 px-3 py-1.5 rounded-full text-xs" onClick={() => setEnlargedPhoto(null)}>Tutup ✕</button>
+                                <img src={enlargedPhoto} alt="Enlarged" className="max-w-full max-h-[80vh] object-contain rounded-xl border-2 border-slate-500 bg-white" onClick={(e) => e.stopPropagation()} />
+                            </div>
+                        </div>
+                    )}
                 </div>
-              </div>
+            );
+        }
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-900 text-white uppercase text-[10px]">
-                    <tr>
-                      <th className="px-3 py-2.5 rounded-l-lg">Record No</th>
-                      <th className="px-3 py-2.5">Tanggal</th>
-                      <th className="px-3 py-2.5">Lokasi</th>
-                      <th className="px-3 py-2.5">Item</th>
-                      <th className="px-3 py-2.5">Keterangan</th>
-                      <th className="px-3 py-2.5">Pelapor</th>
-                      <th className="px-3 py-2.5 rounded-r-lg">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200">
-                    {filteredDefects.map((d) => (
-                      <tr key={d.id} className="hover:bg-slate-50">
-                        <td className="px-3 py-2.5 font-semibold text-blue-600">{d.recordNo}</td>
-                        <td className="px-3 py-2.5 text-slate-500 text-[11px]">{d.date}</td>
-                        <td className="px-3 py-2.5 font-medium">Lnt {d.floor} - {d.room}</td>
-                        <td className="px-3 py-2.5"><span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px]">{d.item}</span></td>
-                        <td className="px-3 py-2.5 text-slate-700 max-w-xs truncate">{d.note}</td>
-                        <td className="px-3 py-2.5 text-[11px] text-slate-500">{d.name}</td>
-                        <td className="px-3 py-2.5">
-                          <span className="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-[10px] font-semibold">
-                            {d.statusEng}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </main>
-
-          {changePassOpen && (
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-              <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl border border-slate-200">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-base font-bold text-slate-800">Ubah Password Akun</h3>
-                  <button onClick={() => setChangePassOpen(false)} className="text-slate-400 hover:text-slate-600">
-                    <i className="fa-solid fa-xmark text-lg"></i>
-                  </button>
-                </div>
-
-                {passMsg.text && (
-                  <div className={`mb-3 p-3 rounded-lg text-xs ${passMsg.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`}>
-                    {passMsg.text}
-                  </div>
-                )}
-
-                <form onSubmit={handleChangePasswordSubmit} className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1">Password Lama</label>
-                    <div className="relative">
-                      <input 
-                        type={showOldPass ? "text" : "password"} 
-                        required 
-                        className="w-full px-3 py-2 pr-10 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-slate-900"
-                        value={oldPassInput}
-                        onChange={(e) => setOldPassInput(e.target.value)}
-                      />
-                      <button 
-                        type="button"
-                        onClick={() => setShowOldPass(!showOldPass)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
-                      >
-                        <i className={`fa-solid ${showOldPass ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1">Password Baru (Min. 6 Karakter)</label>
-                    <div className="relative">
-                      <input 
-                        type={showNewPass ? "text" : "password"} 
-                        required 
-                        className="w-full px-3 py-2 pr-10 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-slate-900"
-                        value={newPassInput}
-                        onChange={(e) => setNewPassInput(e.target.value)}
-                      />
-                      <button 
-                        type="button"
-                        onClick={() => setShowNewPass(!showNewPass)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
-                      >
-                        <i className={`fa-solid ${showNewPass ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1">Konfirmasi Password Baru</label>
-                    <div className="relative">
-                      <input 
-                        type={showConfirmPass ? "text" : "password"} 
-                        required 
-                        className="w-full px-3 py-2 pr-10 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-slate-900"
-                        value={confirmPassInput}
-                        onChange={(e) => setConfirmPassInput(e.target.value)}
-                      />
-                      <button 
-                        type="button"
-                        onClick={() => setShowConfirmPass(!showConfirmPass)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
-                      >
-                        <i className={`fa-solid ${showConfirmPass ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="pt-2">
-                    <button 
-                      type="submit"
-                      className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg text-xs transition shadow-sm"
-                    >
-                      Perbarui Password
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    ReactDOM.render(<App />, document.getElementById('root'));
-  </script>
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
 </body>
 </html>
