@@ -30,6 +30,32 @@
 </head>
 <body class="bg-dark-bg text-slate-100 min-h-screen font-sans antialiased selection:bg-brand-500 selection:text-slate-950">
 
+    <!-- Halaman Login -->
+    <div id="loginScreen" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4">
+        <div class="bg-dark-card border border-dark-border rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6">
+            <div class="text-center space-y-2">
+                <div class="w-16 h-16 bg-brand-500/10 border border-brand-500/30 rounded-2xl mx-auto flex items-center justify-center text-brand-400 text-2xl shadow-inner">
+                    <i class="fas fa-tools"></i>
+                </div>
+                <h1 class="text-xl font-bold text-white">Erian Defect Tracker</h1>
+                <p class="text-xs text-slate-400">Silakan login dengan akun hotel Anda</p>
+            </div>
+            <div class="space-y-4 text-sm">
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Email / Username</label>
+                    <input type="text" id="authEmailInput" placeholder="email@erianhotel.com" class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-4 py-3 text-white text-xs focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Password</label>
+                    <input type="password" id="authPasswordInput" placeholder="••••••••" class="w-full bg-[#1e2124] border border-slate-700 rounded-xl px-4 py-3 text-white text-xs focus:outline-none focus:border-brand-500">
+                </div>
+                <p id="authErrorMsg" class="text-xs text-amber-400 hidden"></p>
+                <button onclick="handleLogin()" class="w-full gold-gradient text-slate-950 py-3 rounded-xl font-bold text-xs shadow-lg hover:opacity-90 transition-all">Login ke Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Utama -->
     <header class="bg-[#1e2124]/90 backdrop-blur-md border-b border-dark-border sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <div class="flex items-center gap-4">
@@ -46,12 +72,15 @@
                     <i class="fas fa-plus text-sm"></i>
                     <span>+ Lapor Defect</span>
                 </button>
+                <button onclick="handleLogout()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-3 py-2.5 rounded-xl text-xs font-semibold" title="Keluar Akun">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
             </div>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        <!-- Statistik Ringkasan -->
+        <!-- Statistik -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="bg-gradient-to-br from-slate-900 to-[#282b30] border border-blue-500/30 rounded-2xl p-6 shadow-xl flex items-center justify-between">
                 <div>
@@ -93,7 +122,7 @@
             </div>
         </div>
 
-        <!-- Tabel Konten Utama -->
+        <!-- Tabel Utama -->
         <div class="bg-dark-card/90 border border-dark-border rounded-3xl shadow-2xl overflow-hidden">
             <div class="p-6 border-b border-dark-border flex flex-col md:flex-row items-center justify-between gap-4">
                 <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
@@ -142,7 +171,7 @@
         </div>
     </main>
 
-    <!-- Modal Tambah / Lapor Defect -->
+    <!-- Modal Lapor Defect -->
     <div id="addDefectModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
         <div class="bg-dark-card border border-dark-border rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
             <div class="flex items-center justify-between pb-3 border-b border-dark-border">
@@ -191,7 +220,14 @@
     </div>
 
     <script>
-        // Data Contoh Awal (Bisa disesuaikan dengan data defect hotel kamu)
+        const SCRIPT_URL = ''; // Masukkan URL Web App Google Apps Script Anda jika ingin sinkronisasi Sheets
+        
+        let userList = [
+            { email: 'admin@erian.com', pass: 'erian2026', name: 'Admin Hotel', role: 'Management' },
+            { email: 'fo@erian.com', pass: 'fo123', name: 'Front Office', role: 'FO' },
+            { email: 'eng@erian.com', pass: 'eng123', name: 'Engineering', role: 'Engineering' }
+        ];
+
         let defectDatabase = [
             { id: 1, location: "Kamar 201", category: "AC & Pendingin", description: "AC kurang dingin / tidak merespon remote", status: "Pending", reporter: "Front Office", date: "29-09-2026" },
             { id: 2, location: "Kamar 305", category: "Plumbing / Pipa", description: "Wastafel mampet / lambat mengalir", status: "In Progress", reporter: "Housekeeping", date: "29-09-2026" },
@@ -200,11 +236,62 @@
 
         let currentPage = 1;
         const itemsPerPage = 10;
+        let currentUser = null;
 
         window.onload = function() {
-            renderTable();
-            updateStats();
+            const savedUser = localStorage.getItem('erian_defect_user');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                document.getElementById('loginScreen').classList.add('hidden');
+            }
+            fetchData();
         };
+
+        function handleLogin() {
+            const email = document.getElementById('authEmailInput').value.trim();
+            const pass = document.getElementById('authPasswordInput').value;
+            const err = document.getElementById('authErrorMsg');
+
+            const matched = userList.find(u => u.email.toLowerCase() === email.toLowerCase() && u.pass === pass);
+            if (matched) {
+                currentUser = matched;
+                localStorage.setItem('erian_defect_user', JSON.stringify(matched));
+                document.getElementById('loginScreen').classList.add('hidden');
+                err.classList.add('hidden');
+            } else {
+                err.innerText = "Email atau password salah. Silakan cek kembali.";
+                err.classList.remove('hidden');
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('erian_defect_user');
+            currentUser = null;
+            document.getElementById('authEmailInput').value = '';
+            document.getElementById('authPasswordInput').value = '';
+            document.getElementById('loginScreen').classList.remove('hidden');
+        }
+
+        function fetchData() {
+            if (!SCRIPT_URL) {
+                renderTable();
+                updateStats();
+                return;
+            }
+            fetch(SCRIPT_URL)
+                .then(res => res.json())
+                .then(data => {
+                    if (Array.isArray(data) && data.length > 0) {
+                        defectDatabase = data;
+                    }
+                    renderTable();
+                    updateStats();
+                }).catch(err => {
+                    console.log("Using local state", err);
+                    renderTable();
+                    updateStats();
+                });
+        }
 
         function updateStats() {
             document.getElementById('totalDefects').innerText = defectDatabase.length;
@@ -269,7 +356,7 @@
         function openAddDefectModal() {
             document.getElementById('inputLocation').value = '';
             document.getElementById('inputDescription').value = '';
-            document.getElementById('inputReporter').value = '';
+            document.getElementById('inputReporter').value = currentUser ? currentUser.name : '';
             const m = document.getElementById('addDefectModal');
             m.classList.remove('hidden');
             setTimeout(() => m.classList.remove('opacity-0'), 10);
@@ -294,7 +381,7 @@
             const today = new Date();
             const dateStr = String(today.getDate()).padStart(2, '0') + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + today.getFullYear();
 
-            defectDatabase.unshift({
+            const newDefect = {
                 id: Date.now(),
                 location,
                 category,
@@ -302,12 +389,23 @@
                 status,
                 reporter,
                 date: dateStr
-            });
+            };
+
+            defectDatabase.unshift(newDefect);
+
+            if (SCRIPT_URL) {
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newDefect)
+                }).catch(err => console.log('Sync error:', err));
+            }
 
             renderTable();
             updateStats();
             closeAddDefectModal();
-            alert("Laporan defect berhasil ditambahkan!");
+            alert("Laporan defect berhasil disimpan!");
         }
 
         function toggleStatus(index) {
