@@ -11,16 +11,17 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #cbd5e1; }
+        body { font-family: 'Inter', sans-serif; background-color: #12161f; color: #e2e8f0; }
     </style>
 </head>
-<body class="bg-[#cbd5e1] text-slate-800 antialiased">
+<body class="bg-[#12161f] text-slate-100 antialiased min-h-screen">
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
         function App() {
+            // Database User (Bisa login pakai email apa saja / staff baru)
             const initialUserList = [
                 { email: "zainalidris22@gmail.com", pass: "zainal123", name: "Zainal (Asst. FOM)", dept: "FO" },
                 { email: "ameliatanuwidjaja@gmail.com", pass: "amel123", name: "Amel (Accounting Spv)", dept: "CA" },
@@ -54,12 +55,21 @@
             const [showLoginPass, setShowLoginPass] = useState(false);
             const [authError, setAuthError] = useState('');
 
+            // Modal Register Staff Baru (Bisa input email Google apa saja)
+            const [registerModalOpen, setRegisterModalOpen] = useState(false);
+            const [newEmail, setNewEmail] = useState('');
+            const [newName, setNewName] = useState('');
+            const [newDept, setNewDept] = useState('FO');
+            const [newPass, setNewPass] = useState('');
+            const [showNewPass, setShowNewPass] = useState(false);
+            const [regMsg, setRegMsg] = useState({ text: '', type: '' });
+
             const [changePassOpen, setChangePassOpen] = useState(false);
             const [oldPassInput, setOldPassInput] = useState('');
             const [newPassInput, setNewPassInput] = useState('');
             const [confirmPassInput, setConfirmPassInput] = useState('');
             const [showOldPass, setShowOldPass] = useState(false);
-            const [showNewPass, setShowNewPass] = useState(false);
+            const [showNewPassMod, setShowNewPassMod] = useState(false);
             const [showConfirmPass, setShowConfirmPass] = useState(false);
             const [passMsg, setPassMsg] = useState({ text: '', type: '' });
 
@@ -69,17 +79,63 @@
 
             const handleLogin = (e) => {
                 e.preventDefault();
-                const matched = userList.find(
-                    u => u.email.toLowerCase() === authEmailInput.trim().toLowerCase() && u.pass === authPasswordInput
-                );
+                const emailClean = authEmailInput.trim().toLowerCase();
+                let matched = userList.find(u => u.email.toLowerCase() === emailClean && u.pass === authPasswordInput);
+                
+                // Fleksibilitas: Jika email belum ada di database tapi pakai @gmail.com dan password minimal 6 karakter, auto-daftarkan sesi
+                if (!matched && emailClean.includes('@') && authPasswordInput.length >= 6) {
+                    const newUser = {
+                        email: emailClean,
+                        pass: authPasswordInput,
+                        name: emailClean.split('@')[0].toUpperCase(),
+                        dept: 'General'
+                    };
+                    setUserList([...userList, newUser]);
+                    setCurrentUser(newUser);
+                    localStorage.setItem('erian_current_user', JSON.stringify(newUser));
+                    return;
+                }
+
                 if (matched) {
                     setCurrentUser(matched);
                     localStorage.setItem('erian_current_user', JSON.stringify(matched));
                     setAuthError('');
                     setAuthPasswordInput('');
                 } else {
-                    setAuthError('Email atau password salah.');
+                    setAuthError('Email atau password salah. Minimal password 6 karakter.');
                 }
+            };
+
+            const handleRegisterNewStaff = (e) => {
+                e.preventDefault();
+                setRegMsg({ text: '', type: '' });
+                const emailClean = newEmail.trim().toLowerCase();
+                
+                if (!emailClean.includes('@')) {
+                    setRegMsg({ text: 'Format email tidak valid.', type: 'error' });
+                    return;
+                }
+                if (newPass.length < 6) {
+                    setRegMsg({ text: 'Password minimal 6 karakter.', type: 'error' });
+                    return;
+                }
+
+                const exists = userList.find(u => u.email.toLowerCase() === emailClean);
+                if (exists) {
+                    setRegMsg({ text: 'Email sudah terdaftar di sistem.', type: 'error' });
+                    return;
+                }
+
+                const createdUser = { email: emailClean, pass: newPass, name: newName.trim() || 'Staff Baru', dept: newDept };
+                setUserList([...userList, createdUser]);
+                setRegMsg({ text: 'Berhasil! Staff baru dapat langsung login.', type: 'success' });
+                setTimeout(() => {
+                    setRegisterModalOpen(false);
+                    setNewEmail('');
+                    setNewName('');
+                    setNewPass('');
+                    setRegMsg({ text: '', type: '' });
+                }, 1500);
             };
 
             const handleLogout = () => {
@@ -279,6 +335,7 @@
 
             const availableRooms = locationMapping.filter(loc => loc.floor === formFloor);
 
+            // Auto Increment Nomor Urut Selanjutnya (Next Sheet)
             const nextRecordNum = useMemo(() => {
                 if (defects.length === 0) return 86;
                 const numbers = defects.map(d => {
@@ -398,14 +455,15 @@
                 }, 400);
             };
 
+            // Format Ekspor Excel Profesional dengan Styling Margin, Auto Header, & Font Calibri
             const exportToExcelTable = () => {
                 const headers = ["No. Record", "Date", "Floor", "Room", "Item", "Reporter", "Dept", "Eng Status", "Eng PIC", "HK Status", "Finding Note"];
                 let htmlTable = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">`;
-                htmlTable += `<head><meta charset="utf-8"/><style>table{border-collapse:collapse;width:100%;font-family:Calibri,sans-serif;font-size:11pt;}th{background:#333b44;color:#fff;font-weight:bold;border:0.5pt solid #000;padding:6px;}td{border:0.5pt solid #d9d9d9;padding:5px;}</style></head><body><table><tr>`;
+                htmlTable += `<head><meta charset="utf-8"/><style>table{border-collapse:collapse;width:100%;font-family:Calibri,sans-serif;font-size:11pt;}th{background:#1e293b;color:#ffffff;font-weight:bold;border:0.5pt solid #475569;padding:8px;text-align:center;}td{border:0.5pt solid #cbd5e1;padding:6px;vertical-align:middle;}</style></head><body><table><tr>`;
                 headers.forEach(h => htmlTable += `<th>${h}</th>`);
                 htmlTable += `</tr>`;
                 filteredData.forEach(d => {
-                    htmlTable += `<tr><td>${d.recordNo}</td><td>${d.date||''}</td><td>${d.floor}</td><td>${d.room}</td><td>${d.item}</td><td>${d.name}</td><td>${d.dept}</td><td>${d.statusEng}</td><td>${d.picEng||''}</td><td>${d.checkHK}</td><td>${d.note||''}</td></tr>`;
+                    htmlTable += `<tr><td>${d.recordNo}</td><td>${d.date||''}</td><td style="text-align:center;">${d.floor}</td><td>${d.room}</td><td>${d.item}</td><td>${d.name}</td><td style="text-align:center;">${d.dept}</td><td style="text-align:center;">${d.statusEng}</td><td>${d.picEng||''}</td><td style="text-align:center;">${d.checkHK}</td><td>${d.note||''}</td></tr>`;
                 });
                 htmlTable += `</table></body></html>`;
 
@@ -445,9 +503,9 @@
                 }
 
                 return matchSearch && matchStatus && matchFloor && matchDate && matchCard;
-            }).sort((a, b) => a.id - b.id); // URUTAN KECIL KE BESAR (No 7 ke 85)
+            }).sort((a, b) => a.id - b.id);
 
-            // Pagination Logic: 20 items per page
+            // Pagination: 20 items per page
             const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
             const paginatedData = useMemo(() => {
                 const start = (currentPage - 1) * itemsPerPage;
@@ -456,18 +514,18 @@
 
             if (!currentUser) {
                 return (
-                    <div className="min-h-screen bg-[#cbd5e1] flex items-center justify-center p-4">
-                        <div className="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl text-center space-y-6 border border-slate-300">
-                            <div className="w-16 h-16 bg-[#333b44] rounded-2xl flex items-center justify-center mx-auto shadow-md">
+                    <div className="min-h-screen bg-[#12161f] flex items-center justify-center p-4">
+                        <div className="bg-[#1e293b] rounded-2xl max-w-md w-full p-8 shadow-2xl text-center space-y-6 border border-slate-700">
+                            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-blue-500/30">
                                 <i className="fa-solid fa-building text-white text-2xl"></i>
                             </div>
                             <div>
-                                <h1 className="text-xl font-bold text-slate-800 tracking-wide uppercase">Erian Defect Tracker</h1>
-                                <p className="text-xs text-slate-500 mt-1">Masukkan Email dan Password resmi Anda.</p>
+                                <h1 className="text-xl font-bold text-white tracking-wide uppercase">Erian Defect Tracker</h1>
+                                <p className="text-xs text-slate-400 mt-1">Masuk dengan Email Google atau buat akun staff baru.</p>
                             </div>
 
                             {authError && (
-                                <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-xs flex items-center gap-2 text-left">
+                                <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-xs flex items-center gap-2 text-left">
                                     <i className="fa-solid fa-circle-exclamation text-red-500 shrink-0"></i>
                                     <span>{authError}</span>
                                 </div>
@@ -475,89 +533,148 @@
 
                             <form onSubmit={handleLogin} className="space-y-4 text-left">
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Email</label>
+                                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Email Google</label>
                                     <div className="relative">
-                                        <i className="fa-solid fa-envelope absolute left-3 top-3.5 text-slate-400"></i>
+                                        <i className="fa-solid fa-envelope absolute left-3.5 top-3.5 text-slate-400"></i>
                                         <input 
                                             type="email" 
                                             value={authEmailInput} 
                                             onChange={(e) => setAuthEmailInput(e.target.value)} 
-                                            placeholder="zainalidris22@gmail.com" 
+                                            placeholder="nama.staff@gmail.com" 
                                             required
-                                            className="w-full pl-9 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-slate-500 bg-white"
+                                            className="w-full pl-10 pr-4 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500"
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Password</label>
+                                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Password</label>
                                     <div className="relative">
-                                        <i className="fa-solid fa-lock absolute left-3 top-3.5 text-slate-400"></i>
+                                        <i className="fa-solid fa-lock absolute left-3.5 top-3.5 text-slate-400"></i>
                                         <input 
                                             type={showLoginPass ? "text" : "password"} 
                                             value={authPasswordInput} 
                                             onChange={(e) => setAuthPasswordInput(e.target.value)} 
-                                            placeholder="Password" 
+                                            placeholder="••••••••" 
                                             required
-                                            className="w-full pl-9 pr-10 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-slate-500 bg-white"
+                                            className="w-full pl-10 pr-10 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500"
                                         />
-                                        <button type="button" onClick={() => setShowLoginPass(!showLoginPass)} className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer">
+                                        <button type="button" onClick={() => setShowLoginPass(!showLoginPass)} className="absolute right-3.5 top-3.5 text-slate-400 hover:text-white cursor-pointer">
                                             <i className={`fa-solid ${showLoginPass ? 'fa-eye-slash' : 'fa-eye'}`}></i>
                                         </button>
                                     </div>
                                 </div>
 
-                                <button type="submit" className="w-full bg-[#333b44] hover:bg-[#22272e] text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition shadow-lg cursor-pointer">
+                                <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition shadow-lg shadow-blue-600/30 cursor-pointer">
                                     <i className="fa-solid fa-right-to-bracket"></i>
                                     <span>Masuk Aplikasi</span>
                                 </button>
                             </form>
+
+                            <div className="pt-2 border-t border-slate-700">
+                                <button onClick={() => setRegisterModalOpen(true)} className="text-xs text-blue-400 hover:text-blue-300 font-semibold cursor-pointer">
+                                    + Daftarkan Email Staff Baru (Akses Submit)
+                                </button>
+                            </div>
                         </div>
+
+                        {/* Modal Daftar Staff Baru */}
+                        {registerModalOpen && (
+                            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                                <div className="bg-[#1e293b] rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-700 text-left">
+                                    <div className="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
+                                        <h3 className="font-bold text-base text-white">Daftar Akun Staff Baru</h3>
+                                        <button onClick={() => setRegisterModalOpen(false)} className="text-slate-400 hover:text-white cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
+                                    </div>
+                                    {regMsg.text && (
+                                        <div className={`p-3 rounded-xl text-xs mb-3 ${regMsg.type === 'error' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}`}>
+                                            {regMsg.text}
+                                        </div>
+                                    )}
+                                    <form onSubmit={handleRegisterNewStaff} className="space-y-3">
+                                        <div>
+                                            <label className="block text-xs font-semibold text-slate-400 mb-1">Nama & Jabatan</label>
+                                            <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Contoh: Rian (Front Desk)" required className="w-full p-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-xs text-white focus:outline-none" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-semibold text-slate-400 mb-1">Email Google Aktif</label>
+                                            <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="staff.erian@gmail.com" required className="w-full p-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-xs text-white focus:outline-none" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-semibold text-slate-400 mb-1">Departemen</label>
+                                            <select value={newDept} onChange={(e) => setNewDept(e.target.value)} className="w-full p-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-xs text-white focus:outline-none cursor-pointer">
+                                                <option value="FO">Front Office (FO)</option>
+                                                <option value="HK">Housekeeping (HK)</option>
+                                                <option value="Eng">Engineering (Eng)</option>
+                                                <option value="FBS">F&B Service (FBS)</option>
+                                                <option value="FBP">F&B Product (FBP)</option>
+                                                <option value="CA">Accounting (CA)</option>
+                                                <option value="Sales">Sales & Marketing</option>
+                                                <option value="IT">IT</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-semibold text-slate-400 mb-1">Password</label>
+                                            <div className="relative">
+                                                <input type={showNewPass ? "text" : "password"} value={newPass} onChange={(e) => setNewPass(e.target.value)} placeholder="Min. 6 karakter" required className="w-full p-2.5 pr-10 bg-[#0f172a] border border-slate-700 rounded-xl text-xs text-white focus:outline-none" />
+                                                <button type="button" onClick={() => setShowNewPass(!showNewPass)} className="absolute right-3 top-3 text-slate-400 hover:text-white cursor-pointer">
+                                                    <i className={`fa-solid ${showNewPass ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-end space-x-2 pt-2 border-t border-slate-700">
+                                            <button type="button" onClick={() => setRegisterModalOpen(false)} className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs cursor-pointer">Batal</button>
+                                            <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold cursor-pointer">Daftarkan</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 );
             }
 
             return (
-                <div className="min-h-screen bg-[#cbd5e1] text-slate-800 font-sans pb-10">
+                <div className="min-h-screen bg-[#12161f] text-slate-100 pb-12">
                     
-                    {/* Header */}
-                    <header className="bg-[#333b44] text-white shadow-md sticky top-0 z-40 border-b border-[#47515e]">
-                        <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-2">
+                    {/* Header Sesuai Screenshot Referensi */}
+                    <header className="bg-[#1a2230] text-white shadow-lg sticky top-0 z-40 border-b border-slate-800">
+                        <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-3">
                             <div className="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
-                                <div className="flex items-center space-x-2">
-                                    <div className="bg-[#47515e] p-2 rounded-xl text-slate-200 font-bold flex items-center justify-center border border-slate-500 shadow-inner">
+                                <div className="flex items-center space-x-2.5">
+                                    <div className="bg-[#243044] p-2.5 rounded-xl text-blue-400 font-bold flex items-center justify-center border border-slate-700 shadow-inner">
                                         <i className="fa-solid fa-building text-base"></i>
                                     </div>
                                     <div>
-                                        <h1 className="font-bold text-xs sm:text-sm tracking-wide uppercase text-slate-100 flex items-center gap-1.5">
-                                            ERIAN DEFECT FIND OUT
-                                            <span className="bg-[#22272e] text-slate-300 text-[9px] px-1.5 py-0.5 rounded-full border border-slate-600">EPF</span>
+                                        <h1 className="font-bold text-xs sm:text-sm tracking-wider uppercase text-white flex items-center gap-2">
+                                            DEFECT FIND OUT
+                                            <span className="bg-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded-md border border-slate-700 font-mono">EPF</span>
                                         </h1>
-                                        <p className="text-[11px] text-slate-400 truncate max-w-[200px] sm:max-w-none">
-                                            {currentUser.name} ({currentUser.dept})
+                                        <p className="text-[11px] text-slate-400 truncate max-w-[220px] sm:max-w-none">
+                                            Logged in as: <span className="text-slate-200 font-medium">{currentUser.name}</span> ({currentUser.dept})
                                         </p>
                                     </div>
                                 </div>
                             </div>
                             
-                            <div className="flex items-center gap-1.5 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-600">
+                            <div className="flex items-center gap-2 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800">
                                 <button
                                     onClick={() => setWorstRoomModal(true)}
-                                    className="bg-amber-600 hover:bg-amber-500 text-white text-xs px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 transition cursor-pointer shadow animate-pulse"
+                                    className="bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 transition cursor-pointer shadow animate-pulse"
                                 >
                                     <i className="fa-solid fa-triangle-exclamation text-yellow-200"></i>
                                     <span>10 Worst Rooms</span>
                                 </button>
                                 <button
                                     onClick={() => setChangePassOpen(true)}
-                                    className="bg-slate-700 hover:bg-slate-600 text-white text-xs px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 transition cursor-pointer"
+                                    className="bg-[#243044] hover:bg-slate-700 text-white text-xs px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 transition cursor-pointer border border-slate-700"
                                 >
                                     <i className="fa-solid fa-key text-amber-400"></i>
                                     <span className="hidden md:inline">Password</span>
                                 </button>
                                 <button
                                     onClick={handleLogout}
-                                    className="bg-red-600 hover:bg-red-500 text-white text-xs px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 transition cursor-pointer"
+                                    className="bg-red-600/80 hover:bg-red-600 text-white text-xs px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 transition cursor-pointer shadow"
                                 >
                                     <i className="fa-solid fa-right-from-bracket"></i>
                                     <span>Logout</span>
@@ -566,15 +683,15 @@
                         </div>
                     </header>
 
-                    {/* Banner */}
-                    <div className="max-w-7xl mx-auto px-4 pt-4 pb-2">
-                        <div className="bg-[#2a3038] border border-slate-500 p-5 rounded-2xl shadow-lg flex flex-col sm:flex-row justify-between items-center gap-4">
+                    {/* Banner Card Sesuai Screenshot Referensi */}
+                    <div className="max-w-7xl mx-auto px-4 pt-5 pb-3">
+                        <div className="bg-[#1a2230] border border-slate-800 p-5 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4">
                             <div className="text-center sm:text-left">
                                 <h2 className="font-bold text-white text-xl sm:text-2xl tracking-wide">ERIAN HOTEL</h2>
-                                <p className="text-xs sm:text-sm text-slate-300 font-medium">Sistem Monitoring & Pelaporan Kerusakan Fasilitas</p>
+                                <p className="text-xs sm:text-sm text-slate-400 font-medium mt-0.5">Sistem Pelaporan dan Monitoring Kerusakan Fasilitas (Defect Tracker)</p>
                             </div>
-                            <div className="flex flex-wrap gap-2 justify-center w-full sm:w-auto">
-                                <button onClick={() => setIsModalOpen(true)} className="flex-1 sm:flex-none bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-1.5 shadow transition cursor-pointer">
+                            <div className="flex flex-wrap gap-2.5 justify-center w-full sm:w-auto">
+                                <button onClick={() => setIsModalOpen(true)} className="flex-1 sm:flex-none bg-amber-600 hover:bg-amber-500 text-white px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 shadow-lg shadow-amber-600/20 transition cursor-pointer">
                                     <i className="fa-solid fa-circle-plus"></i>
                                     <span>Submit Report</span>
                                 </button>
@@ -582,63 +699,71 @@
                         </div>
                     </div>
 
-                    <main className="max-w-7xl mx-auto px-4 py-2">
-                        {/* Statistics Cards */}
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-                            <div onClick={() => {setActiveFilterCard('Total'); setCurrentPage(1);}} className={`p-3.5 rounded-xl shadow border cursor-pointer transition-all ${activeFilterCard === 'Total' ? 'bg-white border-red-600 ring-2 ring-red-300' : 'bg-white border-slate-200 hover:bg-red-50'}`}>
+                    <main className="max-w-7xl mx-auto px-4 py-2 space-y-4">
+                        {/* 4 Cards Statistik Sesuai Screenshot */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div onClick={() => {setActiveFilterCard('Total'); setCurrentPage(1);}} className={`p-4 rounded-2xl shadow-lg border cursor-pointer transition-all ${activeFilterCard === 'Total' ? 'bg-[#1a2230] border-red-500 ring-2 ring-red-500/20' : 'bg-[#1a2230] border-slate-800 hover:border-slate-700'}`}>
                                 <div className="flex justify-between items-start">
-                                    <p className="text-[11px] text-red-600 font-bold uppercase">TOTAL FINDING</p>
-                                    <i className="fa-solid fa-clipboard-list text-red-400 text-xs"></i>
+                                    <p className="text-[11px] text-red-400 font-bold uppercase tracking-wider">TOTAL FINDING</p>
+                                    <div className="w-8 h-8 rounded-xl bg-red-500/10 flex items-center justify-center text-red-400 text-xs border border-red-500/20">
+                                        <i className="fa-solid fa-clipboard-list"></i>
+                                    </div>
                                 </div>
-                                <h3 className="text-xl sm:text-2xl font-bold text-red-600 mt-1">{totalFindings}</h3>
+                                <h3 className="text-2xl font-bold text-white mt-2">{totalFindings} <span className="text-xs font-normal text-slate-400">laporan</span></h3>
                             </div>
                             
-                            <div onClick={() => {setActiveFilterCard('Open / Pending'); setCurrentPage(1);}} className={`p-3.5 rounded-xl shadow border cursor-pointer transition-all ${activeFilterCard === 'Open / Pending' ? 'bg-white border-amber-500 ring-2 ring-amber-300' : 'bg-white border-slate-200 hover:bg-amber-50'}`}>
+                            <div onClick={() => {setActiveFilterCard('Open / Pending'); setCurrentPage(1);}} className={`p-4 rounded-2xl shadow-lg border cursor-pointer transition-all ${activeFilterCard === 'Open / Pending' ? 'bg-[#1a2230] border-amber-500 ring-2 ring-amber-500/20' : 'bg-[#1a2230] border-slate-800 hover:border-slate-700'}`}>
                                 <div className="flex justify-between items-start">
-                                    <p className="text-[11px] text-amber-600 font-bold uppercase">OPEN / PENDING</p>
-                                    <i className="fa-solid fa-clock text-amber-400 text-xs"></i>
+                                    <p className="text-[11px] text-amber-400 font-bold uppercase tracking-wider">OPEN / PENDING</p>
+                                    <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400 text-xs border border-amber-500/20">
+                                        <i className="fa-solid fa-clock"></i>
+                                    </div>
                                 </div>
-                                <h3 className="text-xl sm:text-2xl font-bold text-amber-600 mt-1">{openPendingCount}</h3>
+                                <h3 className="text-2xl font-bold text-white mt-2">{openPendingCount} <span className="text-xs font-normal text-slate-400">pending</span></h3>
                             </div>
 
-                            <div onClick={() => {setActiveFilterCard('Done Progress'); setCurrentPage(1);}} className={`p-3.5 rounded-xl shadow border cursor-pointer transition-all ${activeFilterCard === 'Done Progress' ? 'bg-white border-blue-400 ring-2 ring-blue-200' : 'bg-white border-slate-200 hover:bg-blue-50'}`}>
+                            <div onClick={() => {setActiveFilterCard('Done Progress'); setCurrentPage(1);}} className={`p-4 rounded-2xl shadow-lg border cursor-pointer transition-all ${activeFilterCard === 'Done Progress' ? 'bg-[#1a2230] border-blue-500 ring-2 ring-blue-500/20' : 'bg-[#1a2230] border-slate-800 hover:border-slate-700'}`}>
                                 <div className="flex justify-between items-start">
-                                    <p className="text-[11px] text-blue-600 font-bold uppercase">Done Progress</p>
-                                    <i className="fa-solid fa-screwdriver-wrench text-blue-400 text-xs"></i>
+                                    <p className="text-[11px] text-blue-400 font-bold uppercase tracking-wider">DONE PROGRESS (ENG)</p>
+                                    <div className="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 text-xs border border-blue-500/20">
+                                        <i className="fa-solid fa-screwdriver-wrench"></i>
+                                    </div>
                                 </div>
-                                <h3 className="text-xl sm:text-2xl font-bold text-blue-600 mt-1">{doneProgressCount}</h3>
+                                <h3 className="text-2xl font-bold text-white mt-2">{doneProgressCount} <span className="text-xs font-normal text-slate-400">dikerjakan</span></h3>
                             </div>
 
-                            <div onClick={() => {setActiveFilterCard('Verified Clean'); setCurrentPage(1);}} className={`p-3.5 rounded-xl shadow border cursor-pointer transition-all ${activeFilterCard === 'Verified Clean' ? 'bg-white border-emerald-400 ring-2 ring-emerald-200' : 'bg-white border-slate-200 hover:bg-emerald-50'}`}>
+                            <div onClick={() => {setActiveFilterCard('Verified Clean'); setCurrentPage(1);}} className={`p-4 rounded-2xl shadow-lg border cursor-pointer transition-all ${activeFilterCard === 'Verified Clean' ? 'bg-[#1a2230] border-emerald-500 ring-2 ring-emerald-500/20' : 'bg-[#1a2230] border-slate-800 hover:border-slate-700'}`}>
                                 <div className="flex justify-between items-start">
-                                    <p className="text-[11px] text-emerald-600 font-bold uppercase">Verified Clean</p>
-                                    <i className="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+                                    <p className="text-[11px] text-emerald-400 font-bold uppercase tracking-wider">VERIFIED CLEAN (HK)</p>
+                                    <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 text-xs border border-emerald-500/20">
+                                        <i className="fa-solid fa-circle-check"></i>
+                                    </div>
                                 </div>
-                                <h3 className="text-xl sm:text-2xl font-bold text-emerald-600 mt-1">{verifiedCleanCount}</h3>
+                                <h3 className="text-2xl font-bold text-white mt-2">{verifiedCleanCount} <span className="text-xs font-normal text-slate-400">verified</span></h3>
                             </div>
                         </div>
 
                         {/* Search & Filter Bar */}
-                        <div className="bg-white p-3.5 rounded-xl shadow border border-slate-200 mb-4 space-y-3">
-                            <div className="flex flex-col sm:flex-row gap-2.5">
+                        <div className="bg-[#1a2230] p-4 rounded-2xl shadow-lg border border-slate-800 space-y-3">
+                            <div className="flex flex-col sm:flex-row gap-3">
                                 <div className="flex-1 relative">
-                                    <i className="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+                                    <i className="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-xs"></i>
                                     <input 
                                         type="text" 
                                         value={search}
                                         onChange={(e) => {setSearch(e.target.value); setCurrentPage(1);}}
-                                        placeholder="Cari ruang, item, atau pelapor..." 
-                                        className="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:border-slate-500"
+                                        placeholder="Cari kamar / item / pelapor..." 
+                                        className="w-full pl-10 pr-4 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500"
                                     />
                                 </div>
-                                <div className="flex gap-2">
-                                    <select value={filterStatus} onChange={(e) => {setFilterStatus(e.target.value); setCurrentPage(1);}} className="flex-1 sm:flex-none px-2.5 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none cursor-pointer">
+                                <div className="flex gap-2.5">
+                                    <select value={filterStatus} onChange={(e) => {setFilterStatus(e.target.value); setCurrentPage(1);}} className="flex-1 sm:flex-none px-3 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-xs text-white focus:outline-none cursor-pointer">
                                         <option value="">Semua Status</option>
                                         <option value="Open">Open</option>
                                         <option value="Done Progress">Done Progress</option>
                                         <option value="Resolved">Resolved</option>
                                     </select>
-                                    <select value={filterFloor} onChange={(e) => {setFilterFloor(e.target.value); setCurrentPage(1);}} className="flex-1 sm:flex-none px-2.5 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none cursor-pointer">
+                                    <select value={filterFloor} onChange={(e) => {setFilterFloor(e.target.value); setCurrentPage(1);}} className="flex-1 sm:flex-none px-3 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-xs text-white focus:outline-none cursor-pointer">
                                         <option value="">Semua Area</option>
                                         {Array.from(new Set(locationMapping.map(loc => loc.floor))).map(f => (
                                             <option key={f} value={f}>{f === 'L' ? 'Lobby (L)' : `Lantai ${f}`}</option>
@@ -647,125 +772,125 @@
                                 </div>
                             </div>
 
-                            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
-                                <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-300 px-2.5 py-1.5 rounded-lg text-[11px]">
-                                    <span className="text-slate-500 font-bold">Tanggal:</span>
-                                    <input type="date" value={startDate} onChange={(e) => {setStartDate(e.target.value); setCurrentPage(1);}} className="bg-transparent focus:outline-none text-slate-700 cursor-pointer" />
+                            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800">
+                                <div className="flex items-center gap-2 bg-[#0f172a] border border-slate-700 px-3 py-2 rounded-xl text-xs text-slate-300">
+                                    <span className="font-bold text-slate-400">Tanggal:</span>
+                                    <input type="date" value={startDate} onChange={(e) => {setStartDate(e.target.value); setCurrentPage(1);}} className="bg-transparent text-white focus:outline-none cursor-pointer" />
                                     <span>s/d</span>
-                                    <input type="date" value={endDate} onChange={(e) => {setEndDate(e.target.value); setCurrentPage(1);}} className="bg-transparent focus:outline-none text-slate-700 cursor-pointer" />
-                                    {(startDate || endDate) && <button onClick={() => {setStartDate(''); setEndDate(''); setCurrentPage(1);}} className="text-red-500 font-bold ml-1">✕</button>}
+                                    <input type="date" value={endDate} onChange={(e) => {setEndDate(e.target.value); setCurrentPage(1);}} className="bg-transparent text-white focus:outline-none cursor-pointer" />
+                                    {(startDate || endDate) && <button onClick={() => {setStartDate(''); setEndDate(''); setCurrentPage(1);}} className="text-red-400 font-bold ml-1">✕</button>}
                                 </div>
 
-                                <button onClick={exportToExcelTable} className="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-bold text-xs flex items-center space-x-1.5 transition shadow cursor-pointer">
+                                <button onClick={exportToExcelTable} className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center space-x-2 transition shadow-lg shadow-emerald-600/20 cursor-pointer">
                                     <i className="fa-solid fa-file-excel"></i>
-                                    <span>Export Excel</span>
+                                    <span>Export Excel (Auto-Format)</span>
                                 </button>
                             </div>
                         </div>
 
-                        {/* Data Table with Pagination (20 per page) - SEMUA USER BISA UPDATE */}
-                        <div className="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
+                        {/* Data Table with Pagination (20 items per page) */}
+                        <div className="bg-[#1a2230] rounded-2xl shadow-xl border border-slate-800 overflow-hidden">
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left border-collapse text-xs sm:text-sm">
                                     <thead>
-                                        <tr className="bg-[#333b44] text-slate-100 font-semibold border-b border-slate-600">
-                                            <th className="p-3">No. Record</th>
-                                            <th className="p-3">Foto</th>
-                                            <th className="p-3">Floor / Area</th>
-                                            <th className="p-3">Item Kerusakan</th>
-                                            <th className="p-3">Pelapor</th>
-                                            <th className="p-3">Status (Eng)</th>
-                                            <th className="p-3">Check (HK)</th>
-                                            <th className="p-3 text-center">AI Assist</th>
+                                        <tr className="bg-[#0f172a] text-slate-300 font-semibold border-b border-slate-800">
+                                            <th className="p-3.5">No. Record</th>
+                                            <th className="p-3.5">Foto</th>
+                                            <th className="p-3.5">Floor / Area</th>
+                                            <th className="p-3.5">Item Kerusakan</th>
+                                            <th className="p-3.5">Pelapor</th>
+                                            <th className="p-3.5">Status (Eng)</th>
+                                            <th className="p-3.5">Check (HK)</th>
+                                            <th className="p-3.5 text-center">AI Assist</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-200">
+                                    <tbody className="divide-y divide-slate-800">
                                         {paginatedData.length > 0 ? paginatedData.map((item) => (
-                                            <tr key={item.id} className="hover:bg-slate-50 transition">
-                                                <td className="p-3 font-mono font-bold text-[#333b44]">
+                                            <tr key={item.id} className="hover:bg-[#222b3b] transition">
+                                                <td className="p-3.5 font-mono font-bold text-blue-400">
                                                     {item.recordNo}
                                                     <div className="text-[10px] text-slate-400 font-normal">{item.date}</div>
                                                 </td>
-                                                <td className="p-3">
+                                                <td className="p-3.5">
                                                     {item.photo ? (
-                                                        <div className="relative w-11 h-11 cursor-pointer group" onClick={() => setEnlargedPhoto(item.photo)}>
-                                                            <img src={item.photo} alt="Defect" className="w-full h-full object-cover rounded-lg border border-slate-300 shadow-sm transition group-hover:opacity-60" />
-                                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                                                                <i className="fa-solid fa-expand text-slate-800"></i>
+                                                        <div className="relative w-12 h-12 cursor-pointer group" onClick={() => setEnlargedPhoto(item.photo)}>
+                                                            <img src={item.photo} alt="Defect" className="w-full h-full object-cover rounded-xl border border-slate-700 shadow transition group-hover:opacity-70" />
+                                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black/40 rounded-xl">
+                                                                <i className="fa-solid fa-expand text-white text-xs"></i>
                                                             </div>
                                                         </div>
                                                     ) : (
-                                                        <div className="w-11 h-11 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 text-[10px] border border-slate-200">No Foto</div>
+                                                        <div className="w-12 h-12 bg-[#0f172a] rounded-xl flex items-center justify-center text-slate-500 text-[10px] border border-slate-800">No Foto</div>
                                                     )}
                                                 </td>
-                                                <td className="p-3 font-medium text-slate-800">
+                                                <td className="p-3.5 font-medium text-white">
                                                     {item.floor === 'L' ? 'Lobby (L)' : `Lantai ${item.floor}`}
-                                                    <br /><span className="text-[11px] text-slate-500 font-normal">{item.room}</span>
+                                                    <br /><span className="text-[11px] text-slate-400 font-normal">{item.room}</span>
                                                 </td>
-                                                <td className="p-3 text-slate-700">
-                                                    <span className="font-semibold text-slate-900">{item.item}</span>
-                                                    <br /><span className="text-[11px] text-slate-500">{item.note || '-'}</span>
+                                                <td className="p-3.5 text-slate-300">
+                                                    <span className="font-semibold text-white">{item.item}</span>
+                                                    <br /><span className="text-[11px] text-slate-400">{item.note || '-'}</span>
                                                 </td>
-                                                <td className="p-3 text-slate-600">
+                                                <td className="p-3.5 text-slate-300">
                                                     {item.name}
-                                                    <br /><span className="bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded text-[10px] font-bold">{item.dept}</span>
+                                                    <br /><span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px] font-bold border border-slate-700">{item.dept}</span>
                                                 </td>
-                                                <td className="p-3">
+                                                <td className="p-3.5">
                                                     <select 
                                                         value={item.statusEng} 
                                                         onChange={(e) => updateEngStatus(item.id, e.target.value)}
-                                                        className="text-xs p-1.5 border rounded font-medium focus:outline-none w-full bg-blue-50 border-blue-300 text-blue-800 cursor-pointer"
+                                                        className="text-xs p-2 rounded-xl font-medium focus:outline-none w-full bg-[#0f172a] border border-blue-500/40 text-blue-300 cursor-pointer"
                                                     >
                                                         <option value="Open">Open</option>
                                                         <option value="Done Progress">Done Progress</option>
                                                         <option value="Resolved">Resolved</option>
                                                     </select>
-                                                    {item.picEng && <div className="mt-1 text-[9px] text-blue-600 font-semibold bg-blue-50 px-1 py-0.5 rounded border border-blue-100">PIC: {item.picEng}</div>}
+                                                    {item.picEng && <div className="mt-1 text-[9px] text-blue-400 font-semibold bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20">PIC: {item.picEng}</div>}
                                                 </td>
-                                                <td className="p-3">
+                                                <td className="p-3.5">
                                                     <select 
                                                         value={item.checkHK} 
                                                         onChange={(e) => updateHkStatus(item.id, e.target.value)}
-                                                        className="text-xs p-1.5 border rounded font-medium focus:outline-none w-full bg-emerald-50 border-emerald-300 text-emerald-800 cursor-pointer"
+                                                        className="text-xs p-2 rounded-xl font-medium focus:outline-none w-full bg-[#0f172a] border border-emerald-500/40 text-emerald-300 cursor-pointer"
                                                     >
                                                         <option value="Pending">Pending</option>
                                                         <option value="Not Completed">Not Completed</option>
                                                         <option value="Verified">Verified</option>
                                                     </select>
                                                 </td>
-                                                <td className="p-3 text-center">
-                                                    <button onClick={() => runAiAnalysis(item)} className="bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-300 px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 mx-auto transition shadow-sm cursor-pointer">
-                                                        <i className="fa-solid fa-wand-magic-sparkles text-amber-600"></i><span>Analyze</span>
+                                                <td className="p-3.5 text-center">
+                                                    <button onClick={() => runAiAnalysis(item)} className="bg-[#243044] hover:bg-[#2e3b52] text-slate-200 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 mx-auto transition shadow cursor-pointer">
+                                                        <i className="fa-solid fa-wand-magic-sparkles text-amber-400"></i><span>Analyze</span>
                                                     </button>
                                                 </td>
                                             </tr>
                                         )) : (
-                                            <tr><td colSpan="8" className="p-6 text-center text-slate-500">Tidak ada data defect yang ditemukan.</td></tr>
+                                            <tr><td colSpan="8" className="p-8 text-center text-slate-500">Tidak ada data defect yang ditemukan.</td></tr>
                                         )}
                                     </tbody>
                                 </table>
                             </div>
 
                             {/* Pagination Controls */}
-                            <div className="bg-slate-50 px-4 py-3 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-2">
-                                <span className="text-xs text-slate-500">
-                                    Menampilkan Halaman <span className="font-bold text-slate-700">{currentPage}</span> dari <span className="font-bold text-slate-700">{totalPages}</span> ({filteredData.length} total data)
+                            <div className="bg-[#0f172a] px-4 py-3 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-3">
+                                <span className="text-xs text-slate-400">
+                                    Halaman <span className="font-bold text-white">{currentPage}</span> dari <span className="font-bold text-white">{totalPages}</span> ({filteredData.length} total data)
                                 </span>
-                                <div className="flex items-center space-x-1">
+                                <div className="flex items-center space-x-2">
                                     <button 
                                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                         disabled={currentPage === 1}
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${currentPage === 1 ? 'bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer'}`}
+                                        className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition ${currentPage === 1 ? 'bg-slate-800/50 text-slate-600 border-slate-800 cursor-not-allowed' : 'bg-[#1a2230] text-white border-slate-700 hover:bg-slate-800 cursor-pointer'}`}
                                     >
                                         <i className="fa-solid fa-chevron-left mr-1"></i> Sebelumnya
                                     </button>
-                                    <span className="px-3 py-1.5 bg-[#333b44] text-white rounded-lg text-xs font-bold">
+                                    <span className="px-3.5 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/30">
                                         {currentPage} / {totalPages}
                                     </span>
                                     <button 
                                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                                         disabled={currentPage === totalPages}
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${currentPage === totalPages ? 'bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100 cursor-pointer'}`}
+                                        className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition ${currentPage === totalPages ? 'bg-slate-800/50 text-slate-600 border-slate-800 cursor-not-allowed' : 'bg-[#1a2230] text-white border-slate-700 hover:bg-slate-800 cursor-pointer'}`}
                                     >
                                         Selanjutnya <i className="fa-solid fa-chevron-right ml-1"></i>
                                     </button>
@@ -776,89 +901,89 @@
 
                     {/* MODAL 10 WORST ROOMS */}
                     {worstRoomModal && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
-                                <div className="flex justify-between items-center mb-4 border-b pb-3">
-                                    <h3 className="font-bold text-base text-slate-800 flex items-center gap-2">
-                                        <i className="fa-solid fa-triangle-exclamation text-amber-500"></i> 10 Worst Rooms (Defect Terbanyak)
+                        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                            <div className="bg-[#1e293b] rounded-2xl max-w-md w-full p-6 shadow-2xl relative border border-slate-700">
+                                <div className="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
+                                    <h3 className="font-bold text-base text-white flex items-center gap-2">
+                                        <i className="fa-solid fa-triangle-exclamation text-amber-400"></i> 10 Worst Rooms (Defect Terbanyak)
                                     </h3>
-                                    <button onClick={() => setWorstRoomModal(false)} className="text-slate-400 hover:text-slate-600 font-bold cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
+                                    <button onClick={() => setWorstRoomModal(false)} className="text-slate-400 hover:text-white font-bold cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
                                 </div>
-                                <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
+                                <div className="space-y-2.5 max-h-[60vh] overflow-y-auto pr-1">
                                     {worstRoomsList.map((item, idx) => (
-                                        <div key={idx} className={`p-3 rounded-xl border flex items-center justify-between ${idx === 0 ? 'bg-red-50 border-red-300 shadow-sm' : idx < 3 ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200'}`}>
+                                        <div key={idx} className={`p-3.5 rounded-xl border flex items-center justify-between ${idx === 0 ? 'bg-red-500/10 border-red-500/40' : idx < 3 ? 'bg-amber-500/10 border-amber-500/30' : 'bg-[#0f172a] border-slate-800'}`}>
                                             <div className="flex items-center gap-3">
-                                                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${idx === 0 ? 'bg-red-600 text-white' : idx < 3 ? 'bg-amber-500 text-white' : 'bg-slate-300 text-slate-700'}`}>
+                                                <span className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-bold shadow-inner ${idx === 0 ? 'bg-red-600 text-white' : idx < 3 ? 'bg-amber-500 text-white' : 'bg-slate-800 text-slate-300 border border-slate-700'}`}>
                                                     {idx + 1}
                                                 </span>
                                                 <div>
-                                                    <p className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                                                    <p className="font-bold text-white text-sm flex items-center gap-2">
                                                         Room / Area: {item.room}
-                                                        {idx === 0 && <span className="bg-red-600 text-white text-[9px] px-1.5 py-0.5 rounded font-bold animate-pulse">CRITICAL ALERT</span>}
+                                                        {idx === 0 && <span className="bg-red-600 text-white text-[9px] px-2 py-0.5 rounded-md font-bold animate-pulse">CRITICAL</span>}
                                                     </p>
-                                                    <p className="text-xs text-slate-500">Total Temuan Kerusakan</p>
+                                                    <p className="text-xs text-slate-400">Total Temuan Kerusakan</p>
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${idx === 0 ? 'bg-red-600 text-white' : 'bg-slate-200 text-slate-800'}`}>
+                                                <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${idx === 0 ? 'bg-red-600 text-white' : 'bg-slate-800 text-slate-200 border border-slate-700'}`}>
                                                     {item.count} Laporan
                                                 </span>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
-                                <div className="mt-4 pt-3 border-t text-right">
-                                    <button onClick={() => setWorstRoomModal(false)} className="bg-[#333b44] hover:bg-[#22272e] text-white px-4 py-2 rounded-xl text-xs font-bold cursor-pointer">Tutup</button>
+                                <div className="mt-4 pt-3 border-t border-slate-700 text-right">
+                                    <button onClick={() => setWorstRoomModal(false)} className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl text-xs font-bold cursor-pointer">Tutup</button>
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    {/* MODAL SUBMIT REPORT */}
+                    {/* MODAL SUBMIT REPORT (Auto lanjut ke sheet selanjutnya) */}
                     {isModalOpen && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                            <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-                                <div className="flex justify-between items-center mb-4 border-b pb-3">
-                                    <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2"><i className="fa-solid fa-circle-plus text-[#333b44]"></i> Submit Report Defect</h3>
-                                    <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
+                        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                            <div className="bg-[#1e293b] rounded-2xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto border border-slate-700">
+                                <div className="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
+                                    <h3 className="font-bold text-base text-white flex items-center gap-2"><i className="fa-solid fa-circle-plus text-blue-400"></i> Submit Report Defect</h3>
+                                    <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
                                 </div>
-                                <div className="bg-slate-100 border border-slate-300 px-4 py-2.5 rounded-lg mb-4 flex justify-between items-center">
-                                    <span className="text-xs font-bold text-slate-500 uppercase">No. Tiket:</span>
-                                    <span className="font-mono text-lg font-bold text-[#333b44]">{nextFormattedRecordNo}</span>
+                                <div className="bg-[#0f172a] border border-slate-700 px-4 py-3 rounded-xl mb-4 flex justify-between items-center">
+                                    <span className="text-xs font-bold text-slate-400 uppercase">No. Tiket Otomatis:</span>
+                                    <span className="font-mono text-base font-bold text-blue-400">{nextFormattedRecordNo}</span>
                                 </div>
                                 <form onSubmit={handleSubmit} className="space-y-4">
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
-                                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Lantai</label>
-                                            <select value={formFloor} onChange={handleFloorChange} className="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white cursor-pointer">
+                                            <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Lantai</label>
+                                            <select value={formFloor} onChange={handleFloorChange} className="w-full p-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-xs text-white cursor-pointer">
                                                 {Array.from(new Set(locationMapping.map(loc => loc.floor))).map(f => <option key={f} value={f}>{f === 'L' ? 'Lobby (L)' : `Lantai ${f}`}</option>)}
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Ruangan</label>
-                                            <select value={formRoom} onChange={(e) => setFormRoom(e.target.value)} className="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white cursor-pointer">
+                                            <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Ruangan</label>
+                                            <select value={formRoom} onChange={(e) => setFormRoom(e.target.value)} className="w-full p-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-xs text-white cursor-pointer">
                                                 {availableRooms.map((loc, idx) => <option key={idx} value={loc.room}>{loc.room}</option>)}
                                             </select>
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Kategori</label>
-                                        <select value={formItem} onChange={(e) => setFormItem(e.target.value)} className="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white cursor-pointer">
+                                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Kategori</label>
+                                        <select value={formItem} onChange={(e) => setFormItem(e.target.value)} className="w-full p-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-xs text-white cursor-pointer">
                                             {itemList.map((item, idx) => <option key={idx} value={item}>{item}</option>)}
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Detail Temuan</label>
-                                        <textarea rows="3" value={formNote} onChange={(e) => setFormNote(e.target.value)} placeholder="Jelaskan detail kerusakan..." required className="w-full p-2 border border-slate-300 rounded-lg text-xs focus:outline-none"></textarea>
+                                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Detail Temuan</label>
+                                        <textarea rows="3" value={formNote} onChange={(e) => setFormNote(e.target.value)} placeholder="Jelaskan detail kerusakan..." required className="w-full p-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-xs text-white focus:outline-none"></textarea>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Foto</label>
-                                        <input type="file" accept="image/*" onChange={handlePhotoUpload} className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer" />
-                                        {formPhoto && <img src={formPhoto} alt="Preview" className="w-16 h-16 object-cover rounded-lg border mt-2" />}
+                                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Foto</label>
+                                        <input type="file" accept="image/*" onChange={handlePhotoUpload} className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-white hover:file:bg-slate-700 cursor-pointer" />
+                                        {formPhoto && <img src={formPhoto} alt="Preview" className="w-16 h-16 object-cover rounded-xl border border-slate-700 mt-2" />}
                                     </div>
-                                    <div className="flex justify-end space-x-2 pt-2 border-t">
-                                        <button type="button" onClick={() => setIsModalOpen(false)} className="px-3 py-1.5 border rounded-lg text-xs cursor-pointer">Batal</button>
-                                        <button type="submit" className="px-3 py-1.5 bg-[#333b44] text-white rounded-lg text-xs cursor-pointer">Kirim Report</button>
+                                    <div className="flex justify-end space-x-2 pt-3 border-t border-slate-700">
+                                        <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs cursor-pointer">Batal</button>
+                                        <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold cursor-pointer shadow-lg shadow-blue-600/30">Kirim Report</button>
                                     </div>
                                 </form>
                             </div>
@@ -867,29 +992,29 @@
 
                     {/* MODAL GANTI PASSWORD */}
                     {changePassOpen && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
-                                <div className="flex justify-between items-center mb-4 border-b pb-3">
-                                    <h3 className="font-bold text-base text-slate-800 flex items-center gap-2"><i className="fa-solid fa-key text-amber-600"></i> Ganti Password</h3>
-                                    <button onClick={() => { setChangePassOpen(false); setPassMsg({text: '', type: ''}); }} className="text-slate-400 hover:text-slate-600 cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
+                        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                            <div className="bg-[#1e293b] rounded-2xl max-w-md w-full p-6 shadow-2xl relative border border-slate-700">
+                                <div className="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
+                                    <h3 className="font-bold text-base text-white flex items-center gap-2"><i className="fa-solid fa-key text-amber-400"></i> Ganti Password</h3>
+                                    <button onClick={() => { setChangePassOpen(false); setPassMsg({text: '', type: ''}); }} className="text-slate-400 hover:text-white cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
                                 </div>
-                                {passMsg.text && <div className={`p-2.5 rounded-lg text-xs mb-3 ${passMsg.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`}>{passMsg.text}</div>}
+                                {passMsg.text && <div className={`p-3 rounded-xl text-xs mb-3 ${passMsg.type === 'error' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}`}>{passMsg.text}</div>}
                                 <form onSubmit={handleChangePasswordSubmit} className="space-y-3">
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Password Lama</label>
-                                        <input type={showOldPass ? "text" : "password"} value={oldPassInput} onChange={(e) => setOldPassInput(e.target.value)} required className="w-full p-2 border rounded-lg text-xs" />
+                                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Password Lama</label>
+                                        <input type={showOldPass ? "text" : "password"} value={oldPassInput} onChange={(e) => setOldPassInput(e.target.value)} required className="w-full p-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-xs text-white" />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Password Baru</label>
-                                        <input type={showNewPass ? "text" : "password"} value={newPassInput} onChange={(e) => setNewPassInput(e.target.value)} required className="w-full p-2 border rounded-lg text-xs" />
+                                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Password Baru</label>
+                                        <input type={showNewPassMod ? "text" : "password"} value={newPassInput} onChange={(e) => setNewPassInput(e.target.value)} required className="w-full p-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-xs text-white" />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Konfirmasi Password</label>
-                                        <input type={showConfirmPass ? "text" : "password"} value={confirmPassInput} onChange={(e) => setConfirmPassInput(e.target.value)} required className="w-full p-2 border rounded-lg text-xs" />
+                                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Konfirmasi Password</label>
+                                        <input type={showConfirmPass ? "text" : "password"} value={confirmPassInput} onChange={(e) => setConfirmPassInput(e.target.value)} required className="w-full p-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-xs text-white" />
                                     </div>
-                                    <div className="flex justify-end space-x-2 pt-2 border-t">
-                                        <button type="button" onClick={() => setChangePassOpen(false)} className="px-3 py-1.5 border rounded-lg text-xs cursor-pointer">Batal</button>
-                                        <button type="submit" className="px-3 py-1.5 bg-[#333b44] text-white rounded-lg text-xs cursor-pointer">Simpan</button>
+                                    <div className="flex justify-end space-x-2 pt-3 border-t border-slate-700">
+                                        <button type="button" onClick={() => setChangePassOpen(false)} className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs cursor-pointer">Batal</button>
+                                        <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold cursor-pointer">Simpan</button>
                                     </div>
                                 </form>
                             </div>
@@ -898,18 +1023,18 @@
 
                     {/* MODAL AI ASSISTANT */}
                     {aiModalOpen && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
-                                <div className="flex justify-between items-center mb-4 border-b pb-3">
-                                    <h3 className="font-bold text-base text-slate-800 flex items-center gap-2"><i className="fa-solid fa-wand-magic-sparkles text-amber-600"></i> AI Assistant</h3>
-                                    <button onClick={() => setAiModalOpen(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
+                        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                            <div className="bg-[#1e293b] rounded-2xl max-w-md w-full p-6 shadow-2xl relative border border-slate-700">
+                                <div className="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
+                                    <h3 className="font-bold text-base text-white flex items-center gap-2"><i className="fa-solid fa-wand-magic-sparkles text-amber-400"></i> AI Assistant</h3>
+                                    <button onClick={() => setAiModalOpen(false)} className="text-slate-400 hover:text-white cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
                                 </div>
                                 {isAnalyzing ? (
-                                    <div className="py-8 text-center space-y-2"><div className="w-6 h-6 border-3 border-slate-600 border-t-transparent rounded-full animate-spin mx-auto"></div><p className="text-xs text-slate-600">Menganalisis temuan...</p></div>
+                                    <div className="py-8 text-center space-y-3"><div className="w-7 h-7 border-3 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div><p className="text-xs text-slate-400">Menganalisis temuan...</p></div>
                                 ) : (
-                                    <div className="space-y-3">
-                                        <div className="bg-slate-50 p-3 rounded-xl border text-xs text-slate-800 whitespace-pre-line leading-relaxed">{aiAnalysisResult}</div>
-                                        <button onClick={() => setAiModalOpen(false)} className="w-full bg-[#333b44] text-white py-2 rounded-lg text-xs font-medium cursor-pointer">Tutup</button>
+                                    <div className="space-y-4">
+                                        <div className="bg-[#0f172a] p-4 rounded-xl border border-slate-800 text-xs text-slate-200 whitespace-pre-line leading-relaxed">{aiAnalysisResult}</div>
+                                        <button onClick={() => setAiModalOpen(false)} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-xl text-xs font-bold cursor-pointer shadow-lg shadow-blue-600/30">Tutup</button>
                                     </div>
                                 )}
                             </div>
@@ -918,10 +1043,10 @@
 
                     {/* ZOOM FOTO */}
                     {enlargedPhoto && (
-                        <div className="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center z-[60] p-4" onClick={() => setEnlargedPhoto(null)}>
+                        <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[60] p-4" onClick={() => setEnlargedPhoto(null)}>
                             <div className="relative max-w-4xl max-h-[90vh]">
-                                <button className="absolute -top-10 right-0 text-white bg-slate-800/80 px-3 py-1.5 rounded-full text-xs" onClick={() => setEnlargedPhoto(null)}>Tutup ✕</button>
-                                <img src={enlargedPhoto} alt="Enlarged" className="max-w-full max-h-[80vh] object-contain rounded-xl border-2 border-slate-500 bg-white" onClick={(e) => e.stopPropagation()} />
+                                <button className="absolute -top-10 right-0 text-white bg-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-bold" onClick={() => setEnlargedPhoto(null)}>Tutup ✕</button>
+                                <img src={enlargedPhoto} alt="Enlarged" className="max-w-full max-h-[80vh] object-contain rounded-2xl border border-slate-700 bg-black" onClick={(e) => e.stopPropagation()} />
                             </div>
                         </div>
                     )}
