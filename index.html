@@ -72,6 +72,7 @@
             const [passMsg, setPassMsg] = useState({ text: '', type: '' });
 
             const [worstRoomModal, setWorstRoomModal] = useState(false);
+            const [sidebarOpen, setSidebarOpen] = useState(false);
             const [currentPage, setCurrentPage] = useState(1);
             const itemsPerPage = 20;
 
@@ -352,7 +353,7 @@
                 return Object.entries(counts)
                     .map(([room, count]) => ({ room, count }))
                     .sort((a, b) => b.count - a.count)
-                    .slice(0, 10);
+                    .slice(0, 5);
             }, [defects]);
 
             const handleFloorChange = (e) => {
@@ -391,15 +392,12 @@
                     history: [{ timestamp: new Date().toLocaleString(), action: `Report created by ${currentUser.name} (${currentUser.dept})` }]
                 };
 
-                // Kirim otomatis ke Google Sheets menggunakan Web App URL terbaru Anda
-                fetch("https://script.google.com/macros/s/AKfycbxbMGJp3WvDjAiA8UJ2IRFVYCgu628go6eVqy4sP6gqysa7y11qRMefgJpOMQ1D19Kv9A/exec", {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(newEntry)
-}).catch(err => console.error("Sync error:", err));
+                fetch("https://script.google.com/macros/s/AKfycbzC9LjqKOan_nEhEU6HsVPGZBoNTA4U23kMJgnTx7pSg8oEMbYg88TgRptb-HNuNinAbw/exec", {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newEntry)
+                }).catch(err => console.error("Sync error:", err));
 
                 setDefects([newEntry, ...defects]);
                 setIsModalOpen(false);
@@ -487,6 +485,7 @@
             const openPendingCount = defects.filter(d => d.statusEng === 'Open' || d.checkHK === 'Pending' || d.checkHK === 'Not Completed').length;
             const doneProgressCount = defects.filter(d => d.statusEng === 'Done Progress').length;
             const verifiedCleanCount = defects.filter(d => d.checkHK === 'Verified').length;
+            const resolvedCount = defects.filter(d => d.statusEng === 'Resolved').length;
 
             const filteredData = defects.filter(d => {
                 const matchSearch = d.room.toLowerCase().includes(search.toLowerCase()) || 
@@ -639,262 +638,376 @@
             }
 
             return (
-                <div className="min-h-screen bg-[#12161f] text-slate-100 pb-12">
-                    <header className="bg-[#1a2230] text-white shadow-lg sticky top-0 z-40 border-b border-slate-800">
-                        <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-3">
-                            <div className="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
-                                <div className="flex items-center space-x-2.5">
-                                    <div className="bg-[#243044] p-2.5 rounded-xl text-blue-400 font-bold flex items-center justify-center border border-slate-700 shadow-inner">
-                                        <i className="fa-solid fa-building text-base"></i>
+                <div className="min-h-screen bg-[#12161f] text-slate-100 pb-12 flex">
+                    {/* SIDEBAR DRAWER DARI KIRI (OPTIONAL FILTER) */}
+                    {sidebarOpen && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex">
+                            <div className="bg-[#1a2230] w-80 h-full p-6 shadow-2xl border-r border-slate-800 flex flex-col justify-between overflow-y-auto">
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+                                        <h3 className="font-bold text-white text-sm flex items-center gap-2">
+                                            <i className="fa-solid fa-filter text-blue-400"></i> Opsi Filter & Navigasi
+                                        </h3>
+                                        <button onClick={() => setSidebarOpen(false)} className="text-slate-400 hover:text-white cursor-pointer">
+                                            <i className="fa-solid fa-xmark text-lg"></i>
+                                        </button>
                                     </div>
-                                    <div>
-                                        <h1 className="font-bold text-xs sm:text-sm tracking-wider uppercase text-white flex items-center gap-2">
-                                            DEFECT FIND OUT
-                                            <span className="bg-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded-md border border-slate-700 font-mono">EPF</span>
-                                        </h1>
-                                        <p className="text-[11px] text-slate-400 truncate max-w-[220px] sm:max-w-none">
-                                            Logged in as: <span className="text-slate-200 font-medium">{currentUser.name}</span> ({currentUser.dept})
-                                        </p>
+
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-xs font-semibold text-slate-400 uppercase mb-2">Tampilkan Status:</label>
+                                            <div className="space-y-2">
+                                                <button onClick={() => { setActiveFilterCard('Total'); setSidebarOpen(false); setCurrentPage(1); }} className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between border cursor-pointer ${activeFilterCard === 'Total' ? 'bg-blue-600 text-white border-blue-500' : 'bg-[#0f172a] text-slate-300 border-slate-800 hover:bg-slate-800'}`}>
+                                                    <span>Semua Total Finding</span>
+                                                    <span>{totalFindings}</span>
+                                                </button>
+                                                <button onClick={() => { setActiveFilterCard('Open / Pending'); setSidebarOpen(false); setCurrentPage(1); }} className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between border cursor-pointer ${activeFilterCard === 'Open / Pending' ? 'bg-amber-600 text-white border-amber-500' : 'bg-[#0f172a] text-slate-300 border-slate-800 hover:bg-slate-800'}`}>
+                                                    <span>Open / Pending</span>
+                                                    <span>{openPendingCount}</span>
+                                                </button>
+                                                <button onClick={() => { setActiveFilterCard('Done Progress'); setSidebarOpen(false); setCurrentPage(1); }} className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between border cursor-pointer ${activeFilterCard === 'Done Progress' ? 'bg-blue-600 text-white border-blue-500' : 'bg-[#0f172a] text-slate-300 border-slate-800 hover:bg-slate-800'}`}>
+                                                    <span>Done Progress (Eng)</span>
+                                                    <span>{doneProgressCount}</span>
+                                                </button>
+                                                <button onClick={() => { setActiveFilterCard('Verified Clean'); setSidebarOpen(false); setCurrentPage(1); }} className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between border cursor-pointer ${activeFilterCard === 'Verified Clean' ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-[#0f172a] text-slate-300 border-slate-800 hover:bg-slate-800'}`}>
+                                                    <span>Verified Clean (HK)</span>
+                                                    <span>{verifiedCleanCount}</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-4 border-t border-slate-800">
+                                            <label className="block text-xs font-semibold text-slate-400 uppercase mb-2">Pilih Lantai / Area:</label>
+                                            <select value={filterFloor} onChange={(e) => { setFilterFloor(e.target.value); setCurrentPage(1); }} className="w-full p-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-xs text-white cursor-pointer">
+                                                <option value="">Semua Lantai / Area</option>
+                                                {Array.from(new Set(locationMapping.map(loc => loc.floor))).map(f => (
+                                                    <option key={f} value={f}>{f === 'L' ? 'Lobby (L)' : `Lantai ${f}`}</option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
+
+                                <div className="pt-4 border-t border-slate-800">
+                                    <button onClick={() => { setActiveFilterCard('Total'); setFilterFloor(''); setSearch(''); setSidebarOpen(false); }} className="w-full bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-xl text-xs font-bold cursor-pointer">
+                                        Reset Semua Filter
+                                    </button>
+                                </div>
                             </div>
-                            
-                            <div className="flex items-center gap-2 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800">
-                                <button
-                                    onClick={() => setWorstRoomModal(true)}
-                                    className="bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 transition cursor-pointer shadow animate-pulse"
-                                >
-                                    <i className="fa-solid fa-triangle-exclamation text-yellow-200"></i>
-                                    <span>10 Worst Rooms</span>
-                                </button>
-                                <button
-                                    onClick={() => setChangePassOpen(true)}
-                                    className="bg-[#243044] hover:bg-slate-700 text-white text-xs px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 transition cursor-pointer border border-slate-700"
-                                >
-                                    <i className="fa-solid fa-key text-amber-400"></i>
-                                    <span className="hidden md:inline">Password</span>
-                                </button>
-                                <button
-                                    onClick={handleLogout}
-                                    className="bg-red-600/80 hover:bg-red-600 text-white text-xs px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 transition cursor-pointer shadow"
-                                >
-                                    <i className="fa-solid fa-right-from-bracket"></i>
-                                    <span>Logout</span>
-                                </button>
+                            <div className="flex-1" onClick={() => setSidebarOpen(false)}></div>
+                        </div>
+                    )}
+
+                    <div className="flex-1 flex flex-col min-h-screen">
+                        <header className="bg-[#1a2230] text-white shadow-lg sticky top-0 z-40 border-b border-slate-800">
+                            <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-3 w-full">
+                                <div className="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
+                                    <div className="flex items-center space-x-2.5">
+                                        <button onClick={() => setSidebarOpen(true)} className="bg-[#243044] hover:bg-slate-700 p-2.5 rounded-xl text-blue-400 font-bold flex items-center justify-center border border-slate-700 shadow-inner cursor-pointer" title="Buka Menu Filter Samping">
+                                            <i className="fa-solid fa-bars text-base"></i>
+                                        </button>
+                                        <div>
+                                            <h1 className="font-bold text-xs sm:text-sm tracking-wider uppercase text-white flex items-center gap-2">
+                                                DEFECT FIND OUT
+                                                <span className="bg-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded-md border border-slate-700 font-mono">EPF</span>
+                                            </h1>
+                                            <p className="text-[11px] text-slate-400 truncate max-w-[220px] sm:max-w-none">
+                                                Logged in as: <span className="text-slate-200 font-medium">{currentUser.name}</span> ({currentUser.dept})
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-center gap-2 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800">
+                                    <button
+                                        onClick={() => setWorstRoomModal(true)}
+                                        className="bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 transition cursor-pointer shadow animate-pulse"
+                                    >
+                                        <i className="fa-solid fa-triangle-exclamation text-yellow-200"></i>
+                                        <span>10 Worst Rooms</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setChangePassOpen(true)}
+                                        className="bg-[#243044] hover:bg-slate-700 text-white text-xs px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 transition cursor-pointer border border-slate-700"
+                                    >
+                                        <i className="fa-solid fa-key text-amber-400"></i>
+                                        <span className="hidden md:inline">Password</span>
+                                    </button>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="bg-red-600/80 hover:bg-red-600 text-white text-xs px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 transition cursor-pointer shadow"
+                                    >
+                                        <i className="fa-solid fa-right-from-bracket"></i>
+                                        <span>Logout</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div className="max-w-7xl mx-auto px-4 pt-5 pb-3 w-full">
+                            <div className="bg-[#1a2230] border border-slate-800 p-5 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4">
+                                <div className="flex items-center gap-3">
+                                    <button onClick={() => setSidebarOpen(true)} className="bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 p-3 rounded-xl border border-blue-500/30 text-xs font-bold flex items-center gap-2 cursor-pointer transition">
+                                        <i className="fa-solid fa-bars-staggered"></i>
+                                        <span>Menu Filter Samping</span>
+                                    </button>
+                                    <div className="text-center sm:text-left">
+                                        <h2 className="font-bold text-white text-xl sm:text-2xl tracking-wide">ERIAN HOTEL</h2>
+                                        <p className="text-xs sm:text-sm text-slate-400 font-medium mt-0.5">Sistem Pelaporan dan Monitoring Kerusakan Fasilitas</p>
+                                    </div>
+                                </div>
+                                <div className="flex flex-wrap gap-2.5 justify-center w-full sm:w-auto">
+                                    <button onClick={() => setIsModalOpen(true)} className="flex-1 sm:flex-none bg-amber-600 hover:bg-amber-500 text-white px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 shadow-lg shadow-amber-600/20 transition cursor-pointer">
+                                        <i className="fa-solid fa-circle-plus"></i>
+                                        <span>Submit Report</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </header>
 
-                    <div className="max-w-7xl mx-auto px-4 pt-5 pb-3">
-                        <div className="bg-[#1a2230] border border-slate-800 p-5 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4">
-                            <div className="text-center sm:text-left">
-                                <h2 className="font-bold text-white text-xl sm:text-2xl tracking-wide">ERIAN HOTEL</h2>
-                                <p className="text-xs sm:text-sm text-slate-400 font-medium mt-0.5">Sistem Pelaporan dan Monitoring Kerusakan Fasilitas (Defect Tracker)</p>
-                            </div>
-                            <div className="flex flex-wrap gap-2.5 justify-center w-full sm:w-auto">
-                                <button onClick={() => setIsModalOpen(true)} className="flex-1 sm:flex-none bg-amber-600 hover:bg-amber-500 text-white px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 shadow-lg shadow-amber-600/20 transition cursor-pointer">
-                                    <i className="fa-solid fa-circle-plus"></i>
-                                    <span>Submit Report</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <main className="max-w-7xl mx-auto px-4 py-2 space-y-4">
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                            <div onClick={() => {setActiveFilterCard('Total'); setCurrentPage(1);}} className={`p-4 rounded-2xl shadow-lg border cursor-pointer transition-all ${activeFilterCard === 'Total' ? 'bg-[#1a2230] border-red-500 ring-2 ring-red-500/20' : 'bg-[#1a2230] border-slate-800 hover:border-slate-700'}`}>
-                                <div className="flex justify-between items-start">
-                                    <p className="text-[11px] text-red-400 font-bold uppercase tracking-wider">TOTAL FINDING</p>
-                                    <div className="w-8 h-8 rounded-xl bg-red-500/10 flex items-center justify-center text-red-400 text-xs border border-red-500/20">
-                                        <i className="fa-solid fa-clipboard-list"></i>
+                        <main className="max-w-7xl mx-auto px-4 py-2 space-y-4 w-full flex-1">
+                            {/* DASHBOARD UTAMA: HANYA TOTAL FINDING & WORST ROOM */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div onClick={() => { setActiveFilterCard('Total'); setCurrentPage(1); }} className={`p-5 rounded-2xl shadow-lg border cursor-pointer transition-all bg-[#1a2230] ${activeFilterCard === 'Total' ? 'border-red-500 ring-2 ring-red-500/20' : 'border-slate-800 hover:border-slate-700'}`}>
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <p className="text-[11px] text-red-400 font-bold uppercase tracking-wider">TOTAL FINDING</p>
+                                            <h3 className="text-3xl font-bold text-white mt-1">{totalFindings} <span className="text-xs font-normal text-slate-400">laporan</span></h3>
+                                        </div>
+                                        <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-400 text-sm border border-red-500/20">
+                                            <i className="fa-solid fa-clipboard-list"></i>
+                                        </div>
                                     </div>
+                                    <p className="text-[11px] text-slate-400 mt-3">Klik untuk menampilkan seluruh data laporan aktif.</p>
                                 </div>
-                                <h3 className="text-2xl font-bold text-white mt-2">{totalFindings} <span className="text-xs font-normal text-slate-400">laporan</span></h3>
-                            </div>
-                            
-                            <div onClick={() => {setActiveFilterCard('Open / Pending'); setCurrentPage(1);}} className={`p-4 rounded-2xl shadow-lg border cursor-pointer transition-all ${activeFilterCard === 'Open / Pending' ? 'bg-[#1a2230] border-amber-500 ring-2 ring-amber-500/20' : 'bg-[#1a2230] border-slate-800 hover:border-slate-700'}`}>
-                                <div className="flex justify-between items-start">
-                                    <p className="text-[11px] text-amber-400 font-bold uppercase tracking-wider">OPEN / PENDING</p>
-                                    <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400 text-xs border border-amber-500/20">
-                                        <i className="fa-solid fa-clock"></i>
-                                    </div>
-                                </div>
-                                <h3 className="text-2xl font-bold text-white mt-2">{openPendingCount} <span className="text-xs font-normal text-slate-400">pending</span></h3>
-                            </div>
 
-                            <div onClick={() => {setActiveFilterCard('Done Progress'); setCurrentPage(1);}} className={`p-4 rounded-2xl shadow-lg border cursor-pointer transition-all ${activeFilterCard === 'Done Progress' ? 'bg-[#1a2230] border-blue-500 ring-2 ring-blue-500/20' : 'bg-[#1a2230] border-slate-800 hover:border-slate-700'}`}>
-                                <div className="flex justify-between items-start">
-                                    <p className="text-[11px] text-blue-400 font-bold uppercase tracking-wider">DONE PROGRESS (ENG)</p>
-                                    <div className="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 text-xs border border-blue-500/20">
-                                        <i className="fa-solid fa-screwdriver-wrench"></i>
+                                <div className="md:col-span-2 bg-[#1a2230] p-5 rounded-2xl shadow-lg border border-slate-800 flex flex-col justify-between">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                                            <i className="fa-solid fa-triangle-exclamation"></i> Top 5 Worst Rooms (Temuan Terbanyak)
+                                        </h3>
+                                        <button onClick={() => setWorstRoomModal(true)} className="text-xs text-blue-400 hover:underline font-semibold cursor-pointer">Lihat Semua 10 Room</button>
                                     </div>
-                                </div>
-                                <h3 className="text-2xl font-bold text-white mt-2">{doneProgressCount} <span className="text-xs font-normal text-slate-400">dikerjakan</span></h3>
-                            </div>
-
-                            <div onClick={() => {setActiveFilterCard('Verified Clean'); setCurrentPage(1);}} className={`p-4 rounded-2xl shadow-lg border cursor-pointer transition-all ${activeFilterCard === 'Verified Clean' ? 'bg-[#1a2230] border-emerald-500 ring-2 ring-emerald-500/20' : 'bg-[#1a2230] border-slate-800 hover:border-slate-700'}`}>
-                                <div className="flex justify-between items-start">
-                                    <p className="text-[11px] text-emerald-400 font-bold uppercase tracking-wider">VERIFIED CLEAN (HK)</p>
-                                    <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 text-xs border border-emerald-500/20">
-                                        <i className="fa-solid fa-circle-check"></i>
-                                    </div>
-                                </div>
-                                <h3 className="text-2xl font-bold text-white mt-2">{verifiedCleanCount} <span className="text-xs font-normal text-slate-400">verified</span></h3>
-                            </div>
-                        </div>
-
-                        <div className="bg-[#1a2230] p-4 rounded-2xl shadow-lg border border-slate-800 space-y-3">
-                            <div className="flex flex-col sm:flex-row gap-3">
-                                <div className="flex-1 relative">
-                                    <i className="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-xs"></i>
-                                    <input 
-                                        type="text" 
-                                        value={search}
-                                        onChange={(e) => {setSearch(e.target.value); setCurrentPage(1);}}
-                                        placeholder="Cari kamar / item / pelapor..." 
-                                        className="w-full pl-10 pr-4 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500"
-                                    />
-                                </div>
-                                <div className="flex gap-2.5">
-                                    <select value={filterStatus} onChange={(e) => {setFilterStatus(e.target.value); setCurrentPage(1);}} className="flex-1 sm:flex-none px-3 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-xs text-white focus:outline-none cursor-pointer">
-                                        <option value="">Semua Status</option>
-                                        <option value="Open">Open</option>
-                                        <option value="Done Progress">Done Progress</option>
-                                        <option value="Resolved">Resolved</option>
-                                    </select>
-                                    <select value={filterFloor} onChange={(e) => {setFilterFloor(e.target.value); setCurrentPage(1);}} className="flex-1 sm:flex-none px-3 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-xs text-white focus:outline-none cursor-pointer">
-                                        <option value="">Semua Area</option>
-                                        {Array.from(new Set(locationMapping.map(loc => loc.floor))).map(f => (
-                                            <option key={f} value={f}>{f === 'L' ? 'Lobby (L)' : `Lantai ${f}`}</option>
+                                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                                        {worstRoomsList.slice(0, 5).map((item, idx) => (
+                                            <div key={idx} className="bg-[#0f172a] p-3 rounded-xl border border-slate-800 text-center">
+                                                <span className="text-[10px] text-slate-400 font-bold block truncate">Room {item.room}</span>
+                                                <span className="text-lg font-bold text-white mt-0.5 block">{item.count} <span className="text-[10px] font-normal text-slate-400">laporan</span></span>
+                                            </div>
                                         ))}
-                                    </select>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800">
-                                <div className="flex items-center gap-2 bg-[#0f172a] border border-slate-700 px-3 py-2 rounded-xl text-xs text-slate-300">
-                                    <span className="font-bold text-slate-400">Tanggal:</span>
-                                    <input type="date" value={startDate} onChange={(e) => {setStartDate(e.target.value); setCurrentPage(1);}} className="bg-transparent text-white focus:outline-none cursor-pointer" />
-                                    <span>s/d</span>
-                                    <input type="date" value={endDate} onChange={(e) => {setEndDate(e.target.value); setCurrentPage(1);}} className="bg-transparent text-white focus:outline-none cursor-pointer" />
-                                    {(startDate || endDate) && <button onClick={() => {setStartDate(''); setEndDate(''); setCurrentPage(1);}} className="text-red-400 font-bold ml-1">✕</button>}
+                            {/* PENCARIAN & TABEL DATA UTAMA */}
+                            <div className="bg-[#1a2230] p-4 rounded-2xl shadow-lg border border-slate-800 space-y-3">
+                                <div className="flex flex-col sm:flex-row gap-3">
+                                    <div className="flex-1 relative">
+                                        <i className="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-xs"></i>
+                                        <input 
+                                            type="text" 
+                                            value={search}
+                                            onChange={(e) => {setSearch(e.target.value); setCurrentPage(1);}}
+                                            placeholder="Cari kamar / item / pelapor..." 
+                                            className="w-full pl-10 pr-4 py-2.5 bg-[#0f172a] border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500"
+                                        />
+                                    </div>
+                                    <div className="flex gap-2.5">
+                                        <button onClick={() => setSidebarOpen(true)} className="px-4 py-2.5 bg-[#0f172a] hover:bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-300 font-semibold flex items-center gap-2 cursor-pointer">
+                                            <i className="fa-solid fa-filter text-blue-400"></i>
+                                            <span>Filter Mode: <strong className="text-white">{activeFilterCard}</strong></span>
+                                        </button>
+                                    </div>
                                 </div>
 
-                                <button onClick={exportToExcelTable} className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center space-x-2 transition shadow-lg shadow-emerald-600/20 cursor-pointer">
-                                    <i className="fa-solid fa-file-excel"></i>
-                                    <span>Export Excel (Auto-Format)</span>
-                                </button>
-                            </div>
-                        </div>
+                                <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800">
+                                    <div className="flex items-center gap-2 bg-[#0f172a] border border-slate-700 px-3 py-2 rounded-xl text-xs text-slate-300">
+                                        <span className="font-bold text-slate-400">Tanggal:</span>
+                                        <input type="date" value={startDate} onChange={(e) => {setStartDate(e.target.value); setCurrentPage(1);}} className="bg-transparent text-white focus:outline-none cursor-pointer" />
+                                        <span>s/d</span>
+                                        <input type="date" value={endDate} onChange={(e) => {setEndDate(e.target.value); setCurrentPage(1);}} className="bg-transparent text-white focus:outline-none cursor-pointer" />
+                                        {(startDate || endDate) && <button onClick={() => {setStartDate(''); setEndDate(''); setCurrentPage(1);}} className="text-red-400 font-bold ml-1">✕</button>}
+                                    </div>
 
-                        <div className="bg-[#1a2230] rounded-2xl shadow-xl border border-slate-800 overflow-hidden">
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left border-collapse text-xs sm:text-sm">
-                                    <thead>
-                                        <tr className="bg-[#0f172a] text-slate-300 font-semibold border-b border-slate-800">
-                                            <th className="p-3.5">No. Record</th>
-                                            <th className="p-3.5">Foto</th>
-                                            <th className="p-3.5">Floor / Area</th>
-                                            <th className="p-3.5">Item Kerusakan</th>
-                                            <th className="p-3.5">Pelapor</th>
-                                            <th className="p-3.5">Status (Eng)</th>
-                                            <th className="p-3.5">Check (HK)</th>
-                                            <th className="p-3.5 text-center">AI Assist</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-800">
-                                        {paginatedData.length > 0 ? paginatedData.map((item) => (
-                                            <tr key={item.id} className="hover:bg-[#222b3b] transition">
-                                                <td className="p-3.5 font-mono font-bold text-blue-400">
-                                                    {item.recordNo}
-                                                    <div className="text-[10px] text-slate-400 font-normal">{item.date}</div>
-                                                </td>
-                                                <td className="p-3.5">
-                                                    {item.photo ? (
-                                                        <div className="relative w-12 h-12 cursor-pointer group" onClick={() => setEnlargedPhoto(item.photo)}>
-                                                            <img src={item.photo} alt="Defect" className="w-full h-full object-cover rounded-xl border border-slate-700 shadow transition group-hover:opacity-70" />
-                                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black/40 rounded-xl">
-                                                                <i className="fa-solid fa-expand text-white text-xs"></i>
-                                                            </div>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="w-12 h-12 bg-[#0f172a] rounded-xl flex items-center justify-center text-slate-500 text-[10px] border border-slate-800">No Foto</div>
-                                                    )}
-                                                </td>
-                                                <td className="p-3.5 font-medium text-white">
-                                                    {item.floor === 'L' ? 'Lobby (L)' : `Lantai ${item.floor}`}
-                                                    <br /><span className="text-[11px] text-slate-400 font-normal">{item.room}</span>
-                                                </td>
-                                                <td className="p-3.5 text-slate-300">
-                                                    <span className="font-semibold text-white">{item.item}</span>
-                                                    <br /><span className="text-[11px] text-slate-400">{item.note || '-'}</span>
-                                                </td>
-                                                <td className="p-3.5 text-slate-300">
-                                                    {item.name}
-                                                    <br /><span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px] font-bold border border-slate-700">{item.dept}</span>
-                                                </td>
-                                                <td className="p-3.5">
-                                                    <select 
-                                                        value={item.statusEng} 
-                                                        onChange={(e) => updateEngStatus(item.id, e.target.value)}
-                                                        className="text-xs p-2 rounded-xl font-medium focus:outline-none w-full bg-[#0f172a] border border-blue-500/40 text-blue-300 cursor-pointer"
-                                                    >
-                                                        <option value="Open">Open</option>
-                                                        <option value="Done Progress">Done Progress</option>
-                                                        <option value="Resolved">Resolved</option>
-                                                    </select>
-                                                    {item.picEng && <div className="mt-1 text-[9px] text-blue-400 font-semibold bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20">PIC: {item.picEng}</div>}
-                                                </td>
-                                                <td className="p-3.5">
-                                                    <select 
-                                                        value={item.checkHK} 
-                                                        onChange={(e) => updateHkStatus(item.id, e.target.value)}
-                                                        className="text-xs p-2 rounded-xl font-medium focus:outline-none w-full bg-[#0f172a] border border-emerald-500/40 text-emerald-300 cursor-pointer"
-                                                    >
-                                                        <option value="Pending">Pending</option>
-                                                        <option value="Not Completed">Not Completed</option>
-                                                        <option value="Verified">Verified</option>
-                                                    </select>
-                                                </td>
-                                                <td className="p-3.5 text-center">
-                                                    <button onClick={() => runAiAnalysis(item)} className="bg-[#243044] hover:bg-[#2e3b52] text-slate-200 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 mx-auto transition shadow cursor-pointer">
-                                                        <i className="fa-solid fa-wand-magic-sparkles text-amber-400"></i><span>Analyze</span>
-                                                    </button>
-                                                </td>
+                                    <button onClick={exportToExcelTable} className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center space-x-2 transition shadow-lg shadow-emerald-600/20 cursor-pointer">
+                                        <i className="fa-solid fa-file-excel"></i>
+                                        <span>Export Excel (Auto-Format)</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="bg-[#1a2230] rounded-2xl shadow-xl border border-slate-800 overflow-hidden">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                                        <thead>
+                                            <tr className="bg-[#0f172a] text-slate-300 font-semibold border-b border-slate-800">
+                                                <th className="p-3.5">No. Record</th>
+                                                <th className="p-3.5">Foto</th>
+                                                <th className="p-3.5">Floor / Area</th>
+                                                <th className="p-3.5">Item Kerusakan</th>
+                                                <th className="p-3.5">Pelapor</th>
+                                                <th className="p-3.5">Status (Eng)</th>
+                                                <th className="p-3.5">Check (HK)</th>
+                                                <th className="p-3.5 text-center">AI Assist</th>
                                             </tr>
-                                        )) : (
-                                            <tr><td colSpan="8" className="p-8 text-center text-slate-500">Tidak ada data defect yang ditemukan.</td></tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-800">
+                                            {paginatedData.length > 0 ? paginatedData.map((item) => (
+                                                <tr key={item.id} className="hover:bg-[#222b3b] transition">
+                                                    <td className="p-3.5 font-mono font-bold text-blue-400">
+                                                        {item.recordNo}
+                                                        <div className="text-[10px] text-slate-400 font-normal">{item.date}</div>
+                                                    </td>
+                                                    <td className="p-3.5">
+                                                        {item.photo ? (
+                                                            <div className="relative w-12 h-12 cursor-pointer group" onClick={() => setEnlargedPhoto(item.photo)}>
+                                                                <img src={item.photo} alt="Defect" className="w-full h-full object-cover rounded-xl border border-slate-700 shadow transition group-hover:opacity-70" />
+                                                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black/40 rounded-xl">
+                                                                    <i className="fa-solid fa-expand text-white text-xs"></i>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="w-12 h-12 bg-[#0f172a] rounded-xl flex items-center justify-center text-slate-500 text-[10px] border border-slate-800">No Foto</div>
+                                                        )}
+                                                    </td>
+                                                    <td className="p-3.5 font-medium text-white">
+                                                        {item.floor === 'L' ? 'Lobby (L)' : `Lantai ${item.floor}`}
+                                                        <br /><span className="text-[11px] text-slate-400 font-normal">{item.room}</span>
+                                                    </td>
+                                                    <td className="p-3.5 text-slate-300">
+                                                        <span className="font-semibold text-white">{item.item}</span>
+                                                        <br /><span className="text-[11px] text-slate-400">{item.note || '-'}</span>
+                                                    </td>
+                                                    <td className="p-3.5 text-slate-300">
+                                                        {item.name}
+                                                        <br /><span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px] font-bold border border-slate-700">{item.dept}</span>
+                                                    </td>
+                                                    <td className="p-3.5">
+                                                        <select 
+                                                            value={item.statusEng} 
+                                                            onChange={(e) => updateEngStatus(item.id, e.target.value)}
+                                                            className="text-xs p-2 rounded-xl font-medium focus:outline-none w-full bg-[#0f172a] border border-blue-500/40 text-blue-300 cursor-pointer"
+                                                        >
+                                                            <option value="Open">Open</option>
+                                                            <option value="Done Progress">Done Progress</option>
+                                                            <option value="Resolved">Resolved</option>
+                                                        </select>
+                                                        {item.picEng && <div className="mt-1 text-[9px] text-blue-400 font-semibold bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20">PIC: {item.picEng}</div>}
+                                                    </td>
+                                                    <td className="p-3.5">
+                                                        <select 
+                                                            value={item.checkHK} 
+                                                            onChange={(e) => updateHkStatus(item.id, e.target.value)}
+                                                            className="text-xs p-2 rounded-xl font-medium focus:outline-none w-full bg-[#0f172a] border border-emerald-500/40 text-emerald-300 cursor-pointer"
+                                                        >
+                                                            <option value="Pending">Pending</option>
+                                                            <option value="Not Completed">Not Completed</option>
+                                                            <option value="Verified">Verified</option>
+                                                        </select>
+                                                    </td>
+                                                    <td className="p-3.5 text-center">
+                                                        <button onClick={() => runAiAnalysis(item)} className="bg-[#243044] hover:bg-[#2e3b52] text-slate-200 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 mx-auto transition shadow cursor-pointer">
+                                                            <i className="fa-solid fa-wand-magic-sparkles text-amber-400"></i><span>Analyze</span>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            )) : (
+                                                <tr><td colSpan="8" className="p-8 text-center text-slate-500">Tidak ada data defect yang ditemukan.</td></tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
 
-                            <div className="bg-[#0f172a] px-4 py-3 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-3">
-                                <span className="text-xs text-slate-400">
-                                    Halaman <span className="font-bold text-white">{currentPage}</span> dari <span className="font-bold text-white">{totalPages}</span> ({filteredData.length} total data)
-                                </span>
-                                <div className="flex items-center space-x-2">
-                                    <button 
-                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                        disabled={currentPage === 1}
-                                        className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition ${currentPage === 1 ? 'bg-slate-800/50 text-slate-600 border-slate-800 cursor-not-allowed' : 'bg-[#1a2230] text-white border-slate-700 hover:bg-slate-800 cursor-pointer'}`}
-                                    >
-                                        <i className="fa-solid fa-chevron-left mr-1"></i> Sebelumnya
-                                    </button>
-                                    <span className="px-3.5 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/30">
-                                        {currentPage} / {totalPages}
+                                <div className="bg-[#0f172a] px-4 py-3 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-3">
+                                    <span className="text-xs text-slate-400">
+                                        Halaman <span className="font-bold text-white">{currentPage}</span> dari <span className="font-bold text-white">{totalPages}</span> ({filteredData.length} total data)
                                     </span>
-                                    <button 
-                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                        disabled={currentPage === totalPages}
-                                        className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition ${currentPage === totalPages ? 'bg-slate-800/50 text-slate-600 border-slate-800 cursor-not-allowed' : 'bg-[#1a2230] text-white border-slate-700 hover:bg-slate-800 cursor-pointer'}`}
-                                    >
-                                        Selanjutnya <i className="fa-solid fa-chevron-right ml-1"></i>
-                                    </button>
+                                    <div className="flex items-center space-x-2">
+                                        <button 
+                                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                            disabled={currentPage === 1}
+                                            className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition ${currentPage === 1 ? 'bg-slate-800/50 text-slate-600 border-slate-800 cursor-not-allowed' : 'bg-[#1a2230] text-white border-slate-700 hover:bg-slate-800 cursor-pointer'}`}
+                                        >
+                                            <i className="fa-solid fa-chevron-left mr-1"></i> Sebelumnya
+                                        </button>
+                                        <span className="px-3.5 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/30">
+                                            {currentPage} / {totalPages}
+                                        </span>
+                                        <button 
+                                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                            disabled={currentPage === totalPages}
+                                            className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition ${currentPage === totalPages ? 'bg-slate-800/50 text-slate-600 border-slate-800 cursor-not-allowed' : 'bg-[#1a2230] text-white border-slate-700 hover:bg-slate-800 cursor-pointer'}`}
+                                        >
+                                            Selanjutnya <i className="fa-solid fa-chevron-right ml-1"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </main>
+
+                            {/* SUMMARY KESELURUHAN (LAYOUT CHART / VISUAL PROGRESS BAR) */}
+                            <div className="bg-[#1a2230] p-6 rounded-2xl shadow-xl border border-slate-800 space-y-5">
+                                <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                                    <h3 className="font-bold text-white text-sm uppercase tracking-wide flex items-center gap-2">
+                                        <i className="fa-solid fa-chart-pie text-blue-400"></i> Summary Keseluruhan & Status Progress Hotel
+                                    </h3>
+                                    <span className="text-xs text-slate-400">Total Keseluruhan: <strong>{totalFindings} Laporan</strong></span>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="bg-[#0f172a] p-4 rounded-xl border border-slate-800 flex items-center justify-between">
+                                        <div>
+                                            <p className="text-xs font-bold text-amber-400 uppercase">Open / Pending</p>
+                                            <h4 className="text-2xl font-bold text-white mt-1">{openPendingCount}</h4>
+                                            <p className="text-[10px] text-slate-400 mt-0.5">Belum / Dalam antrean perbaikan</p>
+                                        </div>
+                                        <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400 text-base border border-amber-500/20">
+                                            <i className="fa-solid fa-clock"></i>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-[#0f172a] p-4 rounded-xl border border-slate-800 flex items-center justify-between">
+                                        <div>
+                                            <p className="text-xs font-bold text-blue-400 uppercase">Done Progress (Eng)</p>
+                                            <h4 className="text-2xl font-bold text-white mt-1">{doneProgressCount}</h4>
+                                            <p className="text-[10px] text-slate-400 mt-0.5">Selesai dikerjakan Engineering</p>
+                                        </div>
+                                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 text-base border border-blue-500/20">
+                                            <i className="fa-solid fa-screwdriver-wrench"></i>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-[#0f172a] p-4 rounded-xl border border-slate-800 flex items-center justify-between">
+                                        <div>
+                                            <p className="text-xs font-bold text-emerald-400 uppercase">Verified Clean (HK)</p>
+                                            <h4 className="text-2xl font-bold text-white mt-1">{verifiedCleanCount}</h4>
+                                            <p className="text-[10px] text-slate-400 mt-0.5">Diverifikasi bersih oleh Housekeeping</p>
+                                        </div>
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 text-base border border-emerald-500/20">
+                                            <i className="fa-solid fa-circle-check"></i>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Visual Progress Bar Chart */}
+                                <div className="space-y-2 pt-2">
+                                    <div className="flex justify-between text-xs text-slate-300 font-medium">
+                                        <span>Rasio Penyelesaian Keseluruhan</span>
+                                        <span>{Math.round(((verifiedCleanCount + doneProgressCount) / (totalFindings || 1)) * 100)}% Selesai/Dikerjakan</span>
+                                    </div>
+                                    <div className="w-full h-3.5 bg-[#0f172a] rounded-full overflow-hidden flex border border-slate-700">
+                                        <div style={{ width: `${(openPendingCount / totalFindings) * 100}%` }} className="bg-amber-500 h-full" title={`Open/Pending: ${openPendingCount}`}></div>
+                                        <div style={{ width: `${(doneProgressCount / totalFindings) * 100}%` }} className="bg-blue-500 h-full" title={`Done Progress: ${doneProgressCount}`}></div>
+                                        <div style={{ width: `${(verifiedCleanCount / totalFindings) * 100}%` }} className="bg-emerald-500 h-full" title={`Verified Clean: ${verifiedCleanCount}`}></div>
+                                    </div>
+                                    <div className="flex items-center justify-center gap-6 pt-2 text-[11px] text-slate-400">
+                                        <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-amber-500 inline-block"></span> Open / Pending</div>
+                                        <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> Done Progress (Eng)</div>
+                                        <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Verified Clean (HK)</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </main>
+                    </div>
 
                     {worstRoomModal && (
                         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -1023,7 +1136,8 @@
                                     <button onClick={() => setAiModalOpen(false)} className="text-slate-400 hover:text-white cursor-pointer"><i className="fa-solid fa-xmark text-lg"></i></button>
                                 </div>
                                 {isAnalyzing ? (
-                                    <div className="py-8 text-center space-y-3"><div className="w-7 h-7 border-3 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div><p className="text-xs text-slate-400">Menganalisis temuan...</p></div>
+                                    <div className="py-8 text-center space-y-3"><div className="w-7 h-7 border-3 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div><p className="text-xs text-slate-400">Menganalisis temuan...</p>
+</div>
                                 ) : (
                                     <div className="space-y-4">
                                         <div className="bg-[#0f172a] p-4 rounded-xl border border-slate-800 text-xs text-slate-200 whitespace-pre-line leading-relaxed">{aiAnalysisResult}</div>
